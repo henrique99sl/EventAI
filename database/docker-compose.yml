@@ -1,0 +1,26 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15
+    container_name: eventos_postgres
+    restart: always
+    environment:
+      POSTGRES_USER: eventos_user
+      POSTGRES_PASSWORD: eventos_pass
+      POSTGRES_DB: eventos_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+  adminer:
+    image: adminer
+    container_name: eventos_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  db_data:
