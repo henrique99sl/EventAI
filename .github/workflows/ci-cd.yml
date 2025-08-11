@@ -114,7 +114,7 @@ jobs:
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
           task-definition: backend/task-definition.json
-          container-name: backend      # <-- Tem de ser igual ao "name" no task-definition.json
+          container-name: eventai-backend
           image: ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Deploy ECS service
