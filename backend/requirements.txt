@@ -13,3 +13,4 @@ prometheus_flask_exporter
 Flask-Limiter
 Flask-Limiter[redis]
 redis
+sentry-sdk
