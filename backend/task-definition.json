@@ -1,5 +1,6 @@
 {
     "family": "backend-task",
+    "executionRoleArn": "arn:aws:iam::975050196040:role/ecsTaskExecutionRole",
     "networkMode": "awsvpc",
     "requiresCompatibilities": ["FARGATE"],
     "cpu": "256",
