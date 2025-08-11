@@ -225,3 +225,4 @@ Usamos Alembic/Flask-Migrate:
 
 Dúvidas? Sugestões? Abre uma issue ou PR!
 Teste de CI/CD em 11/08/2025
+Atualização para testar CI/CD em 11/08/2025
