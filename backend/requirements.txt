@@ -7,3 +7,9 @@ email-validator
 flasgger
 flask-migrate
 pytest
+gunicorn
+flask-cors==6.0.1
+prometheus_flask_exporter
+Flask-Limiter
+Flask-Limiter[redis]
+redis

@@ -2,66 +2,64 @@
 
 # EventAI Backend
 
-Este é o backend para o projeto **EventAI**, uma API RESTful desenvolvida em Flask para gerir utilizadores, eventos e locais (venues), com autenticação JWT, permissões de admin, documentação Swagger e testes automatizados.
+Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizadores, eventos e locais (venues), com autenticação JWT, permissões de admin, documentação Swagger, testes automatizados e pronto para Docker/CI/CD.
 
 ---
 
 ## 🚀 Funcionalidades
 
-- **Gestão de Utilizadores** (CRUD, admin, autenticação JWT, segurança de senha)
-- **Gestão de Eventos** (CRUD, filtro por nome/data/venue)
-- **Gestão de Locais (Venues)** (CRUD)
-- **Permissões**: Apenas admin pode apagar utilizadores
-- **Documentação Swagger**
-- **Testes automatizados com Pytest**
+- **Gestão de Utilizadores:** CRUD, autenticação JWT, roles, segurança de senha
+- **Gestão de Eventos:** CRUD, filtros por nome/data/venue
+- **Gestão de Locais (Venues):** CRUD completo
+- **Permissões:** Apenas admin pode apagar utilizadores e criar outros admins
+- **Documentação interativa Swagger/OpenAPI**
+- **Testes automatizados (Pytest + Coverage)**
 - **Pronto para CI/CD (GitHub Actions)**
+- **Docker e Docker Compose prontos para produção/dev**
 
 ---
 
-## 🛠️ Instalação e Setup
+## ⚡ Setup rápido (Docker recomendado)
 
 ```bash
 git clone https://github.com/henrique99sl/EventAI.git
 cd EventAI/backend
-python3 -m venv venv
-source venv/bin/activate
-pip install -r requirements.txt
+cp .env.example .env
+docker-compose up --build
 ```
 
-Crie um ficheiro `.env` com as variáveis:
+- O backend estará em [http://localhost:8000](http://localhost:8000)
+- O Adminer (gestor de base de dados) em [http://localhost:8080](http://localhost:8080)
+- A documentação Swagger em [http://localhost:8000/apidocs](http://localhost:8000/apidocs)
+
+### Variáveis de ambiente `.env` (exemplo)
 
 ```env
-DATABASE_URL=sqlite:///eventai.db
+DATABASE_URL=postgresql://eventos_user:eventos_pass@db:5432/eventos_db
 SECRET_KEY=minha_chave_ultra_secreta
 ```
 
-Inicie a base de dados:
-
-```bash
-flask db upgrade
-```
-
 ---
 
-## ▶️ Como correr
+## 🧑‍💻 Setup manual (sem Docker)
 
 ```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+flask db upgrade
 flask run
 ```
-A API ficará disponível em `http://localhost:5000/`
+API disponível em `http://localhost:5000/`
 
 ---
 
-## 🧑‍💻 Testes
+## 🧪 Testes
 
 ```bash
 pytest
-```
-
-Todos os testes devem passar!  
-Se quiser rodar localmente com coverage:
-
-```bash
+# ou com coverage
 pytest --cov=.
 ```
 
@@ -69,9 +67,9 @@ pytest --cov=.
 
 ## 🔐 Autenticação & Fluxo de Admin
 
-- Para criar um utilizador **com role "admin"**, o request deve conter um token JWT de um admin autenticado.
+- Para criar utilizador/admin, enviar role no JSON. Criar admin exige token JWT de admin.
 - Apenas admins podem criar outros admins e apagar utilizadores.
-- O primeiro admin pode ser criado manualmente na base de dados ou via script/teste.
+- O primeiro admin pode ser criado manualmente na base de dados, via migration ou script.
 
 ---
 
@@ -79,72 +77,86 @@ pytest --cov=.
 
 ### Utilizadores
 
-| Método | Endpoint          | Descrição                           | Permissão      |
-|--------|-------------------|-------------------------------------|----------------|
-| GET    | /users            | Lista todos os utilizadores         | Livre          |
-| POST   | /users            | Cria utilizador                     | Livre/admin    |
-| GET    | /users/<id>       | Detalhe utilizador                  | JWT            |
-| PUT    | /users/<id>       | Edita utilizador                    | JWT            |
-| DELETE | /users/<id>       | Apaga utilizador                    | Admin/JWT      |
+| Método | Endpoint         | Descrição               | Permissão      |
+|--------|------------------|-------------------------|----------------|
+| GET    | /users           | Listar utilizadores     | Livre          |
+| POST   | /users           | Criar utilizador        | Livre/Admin    |
+| GET    | /users/&lt;id&gt;| Ver detalhes            | JWT            |
+| PUT    | /users/&lt;id&gt;| Editar utilizador       | JWT            |
+| DELETE | /users/&lt;id&gt;| Apagar utilizador       | Admin/JWT      |
 
 ### Autenticação
 
-| Método | Endpoint      | Descrição           |
-|--------|---------------|---------------------|
-| POST   | /login        | Login e token JWT   |
-| GET    | /me           | Info do utilizador  |
+| Método | Endpoint  | Descrição           |
+|--------|-----------|---------------------|
+| POST   | /login    | Login & token JWT   |
+| GET    | /me       | Info do utilizador  |
 
 ### Eventos
 
-| Método | Endpoint          | Descrição                                 | Permissão  |
-|--------|-------------------|-------------------------------------------|------------|
-| GET    | /events           | Lista/filtros de eventos                  | Livre      |
-| POST   | /events           | Cria evento                               | JWT        |
-| GET    | /events/<id>      | Detalhes evento                           | Livre      |
-| PUT    | /events/<id>      | Edita evento                              | JWT        |
-| DELETE | /events/<id>      | Apaga evento                              | JWT        |
+| Método | Endpoint         | Descrição             | Permissão  |
+|--------|------------------|-----------------------|------------|
+| GET    | /events          | Listar/filtros        | Livre      |
+| POST   | /events          | Criar evento          | JWT        |
+| GET    | /events/&lt;id&gt;| Ver detalhes         | Livre      |
+| PUT    | /events/&lt;id&gt;| Editar evento        | JWT        |
+| DELETE | /events/&lt;id&gt;| Apagar evento        | JWT        |
 
 ### Venues
 
-| Método | Endpoint          | Descrição                                 | Permissão  |
-|--------|-------------------|-------------------------------------------|------------|
-| GET    | /venues           | Lista/filtros de venues                   | Livre      |
-| POST   | /venues           | Cria venue                                | JWT        |
-| GET    | /venues/<id>      | Detalhes venue                            | Livre      |
-| PUT    | /venues/<id>      | Edita venue                               | JWT        |
-| DELETE | /venues/<id>      | Apaga venue                               | JWT        |
+| Método | Endpoint         | Descrição             | Permissão  |
+|--------|------------------|-----------------------|------------|
+| GET    | /venues          | Listar/filtros        | Livre      |
+| POST   | /venues          | Criar venue           | JWT        |
+| GET    | /venues/&lt;id&gt;| Ver detalhes        | Livre      |
+| PUT    | /venues/&lt;id&gt;| Editar venue         | JWT        |
+| DELETE | /venues/&lt;id&gt;| Apagar venue         | JWT        |
 
 ---
 
-## 📃 Swagger
+## 📃 Documentação Swagger
 
-A documentação interativa está disponível em `/apidocs` quando o servidor está no ar.
+Acede a `/apidocs` com o servidor a correr para usar a documentação interativa.
 
 ---
 
-## 🧪 Exemplo de Request com JWT
+## 🧪 Exemplos de Requests
+
+### Login
 
 ```bash
-# Login
-curl -X POST http://localhost:5000/login -H "Content-Type: application/json" \
+curl -X POST http://localhost:8000/login \
+  -H "Content-Type: application/json" \
   -d '{"email":"user@gmail.com", "password":"StrongPass1"}'
+```
 
-# Criar evento autenticado
-curl -X POST http://localhost:5000/events -H "Content-Type: application/json" \
+### Criar evento autenticado
+
+```bash
+curl -X POST http://localhost:8000/events \
+  -H "Content-Type: application/json" \
   -H "Authorization: Bearer SEU_TOKEN_AQUI" \
   -d '{"name":"Concerto", "date":"2025-09-01", "venue_id":1}'
+```
+
+### Criar utilizador
+
+```bash
+curl -X POST http://localhost:8000/users \
+  -H "Content-Type: application/json" \
+  -d '{"username":"joao", "email":"joao@exemplo.com", "password":"forte123", "role":"user"}'
 ```
 
 ---
 
 ## 🛠️ CI/CD (GitHub Actions)
 
-Já incluído: quando fazes push/pull request, os testes rodam automaticamente.  
-Ver `.github/workflows/ci-cd.yml`.
+- Os testes correm automaticamente a cada push/pull request.
+- Workflow em `.github/workflows/ci-cd.yml`.
 
 ---
 
-## 📦 Estrutura
+## 🗂️ Estrutura do projeto
 
 ```
 backend/
@@ -164,7 +176,44 @@ backend/
   requirements.txt
   README.md
   swagger.yaml
+  docker-compose.yml
+  Dockerfile
+  .env.example
 ```
+
+---
+
+## 🗄️ Setup Base de Dados (SQLite e PostgreSQL)
+
+O projeto suporta **SQLite** (para testes/desenvolvimento) e **PostgreSQL** (produção).  
+A escolha é feita através da variável `DATABASE_URL` no `.env`.
+
+- **SQLite** (default para dev):  
+  ```env
+  DATABASE_URL=sqlite:///local.db
+  ```
+- **PostgreSQL** (produção ou integração):  
+  ```env
+  DATABASE_URL=postgresql://user:password@host:port/dbname
+  ```
+
+**Nota:**  
+Em Docker Compose, já vem pré-configurado para PostgreSQL.
+
+---
+
+## 🧩 Migrações de Base de Dados
+
+Usamos Alembic/Flask-Migrate:
+
+- **Criar nova migração:**
+  ```bash
+  flask db migrate -m "Descrição da alteração"
+  ```
+- **Aplicar migrações:**
+  ```bash
+  flask db upgrade
+  ```
 
 ---
 
@@ -174,4 +223,4 @@ backend/
 
 ---
 
-Dúvidas? Abre uma issue!
+Dúvidas? Sugestões? Abre uma issue ou PR!
