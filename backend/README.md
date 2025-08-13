@@ -2,7 +2,7 @@
 
 # EventAI Backend
 
-Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizadores, eventos e locais (venues), com autenticação JWT, permissões de admin, documentação Swagger, testes automatizados e pronto para Docker/CI/CD.
+Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizadores, eventos e locais (venues), com autenticação JWT, permissões de admin, documentação Swagger, testes automatizados, backup automatizado, pronto para Docker, CI/CD e **Kubernetes**.
 
 ---
 
@@ -14,8 +14,10 @@ Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizador
 - **Permissões:** Apenas admin pode apagar utilizadores e criar outros admins
 - **Documentação interativa Swagger/OpenAPI**
 - **Testes automatizados (Pytest + Coverage)**
-- **Pronto para CI/CD (GitHub Actions)**
+- **Backup automatizado do banco de dados**
+- **Pronto para CI/CD (GitHub Actions + AWS)**
 - **Docker e Docker Compose prontos para produção/dev**
+- **Pronto para Kubernetes (manifests na pasta `k8s/` e exemplos abaixo)**
 
 ---
 
@@ -38,6 +40,49 @@ docker-compose up --build
 DATABASE_URL=postgresql://eventos_user:eventos_pass@db:5432/eventos_db
 SECRET_KEY=minha_chave_ultra_secreta
 ```
+
+---
+
+## ☸️ Deploy com Kubernetes
+
+> **Pré-requesito:** Ter um cluster Kubernetes (ex: minikube, kind, GKE, EKS, etc) e `kubectl`.
+
+- Os manifests de deployment e serviço estão na pasta `k8s/`
+
+```bash
+kubectl apply -f k8s/postgres-deployment.yaml
+kubectl apply -f k8s/backend-deployment.yaml
+kubectl apply -f k8s/adminer-deployment.yaml
+```
+
+- Exponha o backend e o Adminer com NodePort, LoadBalancer ou Ingress conforme o ambiente.
+- Recomenda-se configurar o banco com PVC (PersistentVolumeClaim) para dados e backups.
+
+> **Dica:** Adapte os manifests para apontar para os teus secrets e configurações.
+
+---
+
+## 🗄️ Backup e Restore do Banco de Dados
+
+- **Backup manual:**  
+  ```bash
+  docker-compose exec backend bash scripts/backup_db.sh
+  ```
+  O backup `.sql` será salvo em `./backups` (pasta do host, mapeada no container).
+
+- **Backup automático:**  
+  Agende via cron fora do container, ou crie um Job/CronJob no Kubernetes para rodar `scripts/backup_db.sh`.
+
+- **Restore manual:**  
+  ```bash
+  # copie o arquivo para o container do banco ou volume compartilhado
+  docker-compose exec db bash
+  psql -U eventos_user -d eventos_db -f /var/lib/postgresql/data/teubackup.sql
+  ```
+  *(Ajuste o caminho conforme onde o backup está disponível no container)*
+
+- **Em produção/Kubernetes:**  
+  Use Jobs/CronJobs para backups e restores, sempre garantindo que os arquivos estejam disponíveis nos volumes corretos.
 
 ---
 
@@ -149,10 +194,12 @@ curl -X POST http://localhost:8000/users \
 
 ---
 
-## 🛠️ CI/CD (GitHub Actions)
+## 🛠️ CI/CD (GitHub Actions + AWS)
 
 - Os testes correm automaticamente a cada push/pull request.
+- Deploy automatizado para AWS (EC2, ECS, EKS, etc).
 - Workflow em `.github/workflows/ci-cd.yml`.
+- Secrets e config protegidos via GitHub Secrets/AWS Secrets Manager.
 
 ---
 
@@ -173,12 +220,19 @@ backend/
     test_routes.py
     test_users.py
     test_venues.py
+  scripts/
+    backup_db.sh
   requirements.txt
   README.md
   swagger.yaml
   docker-compose.yml
   Dockerfile
   .env.example
+  backups/
+k8s/
+  postgres-deployment.yaml
+  backend-deployment.yaml
+  adminer-deployment.yaml
 ```
 
 ---
@@ -186,7 +240,7 @@ backend/
 ## 🗄️ Setup Base de Dados (SQLite e PostgreSQL)
 
 O projeto suporta **SQLite** (para testes/desenvolvimento) e **PostgreSQL** (produção).  
-A escolha é feita através da variável `DATABASE_URL` no `.env`.
+A escolha é feita via variável `DATABASE_URL` no `.env`.
 
 - **SQLite** (default para dev):  
   ```env
@@ -198,7 +252,7 @@ A escolha é feita através da variável `DATABASE_URL` no `.env`.
   ```
 
 **Nota:**  
-Em Docker Compose, já vem pré-configurado para PostgreSQL.
+Em Docker Compose e Kubernetes, já vem pré-configurado para PostgreSQL.
 
 ---
 
@@ -217,6 +271,20 @@ Usamos Alembic/Flask-Migrate:
 
 ---
 
+## ✅ Checklist de Produção
+
+- [x] CI/CD automatizado (GitHub Actions + AWS)
+- [x] Backup automatizado do banco
+- [x] Restore manual/documentado
+- [ ] Restore testado regularmente
+- [x] Rollback de deploy (imagem Docker anterior/backups)
+- [ ] Monitoramento e alertas (containers, logs, saúde HTTP)
+- [x] Variáveis de ambiente seguras (Secrets no GitHub/AWS)
+- [x] Compatível com Kubernetes (manifests e exemplos)
+- [ ] Documentação de restore e rollback no repositório
+
+---
+
 ## 📄 Licença
 
 [MIT](LICENSE)
@@ -224,5 +292,3 @@ Usamos Alembic/Flask-Migrate:
 ---
 
 Dúvidas? Sugestões? Abre uma issue ou PR!
-Teste de CI/CD em 11/08/2025
-Atualização para testar CI/CD em 11/08/2025
