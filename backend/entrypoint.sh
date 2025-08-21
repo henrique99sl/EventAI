@@ -1,10 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "-> Aguardando pela base de dados em db:5433..."
+# Use variáveis de ambiente ou valores padrão
+DB_HOST=${DB_HOST:-host.docker.internal}
+DB_PORT=${DB_PORT:-5432}
+DB_USER=${DB_USER:-eventos_user}
 
-# Espera até o Postgres estar acessível na porta 5433
-until pg_isready -h db -p 5433 -U eventos_user; do
+echo "-> Aguardando pela base de dados em $DB_HOST:$DB_PORT..."
+
+# Espera até o Postgres estar acessível na porta correta
+until pg_isready -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER"; do
   sleep 2
 done
 

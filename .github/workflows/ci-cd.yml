@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: backend/coverage.xml
+          path: coverage.xml
 
   build-docker:
     name: Build Docker image
@@ -113,8 +113,8 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: backend/task-definition.json
-          container-name: eventai-backend
+          task-definition: task-definition.json
+          container-name: eventai-backend # Certifique-se que está igual ao seu task-definition.json
           image: ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Deploy ECS service

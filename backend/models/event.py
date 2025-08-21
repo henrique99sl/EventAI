@@ -12,6 +12,14 @@ class Event(db.Model):
     venue = db.relationship("Venue", backref="events")
     owner = db.relationship("User", backref="events")
 
+    # Relacionamento opcional (permite acessar participações do evento)
+    participations = db.relationship(
+        "EventParticipation",
+        backref="event",
+        cascade="all, delete-orphan",
+        lazy="dynamic"
+    )
+
     def to_dict(self):
         return {
             "id": self.id,

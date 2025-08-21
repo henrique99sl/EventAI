@@ -15,9 +15,15 @@ Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizador
 - **Documentação interativa Swagger/OpenAPI**
 - **Testes automatizados (Pytest + Coverage)**
 - **Backup automatizado do banco de dados**
+- **Restauração do banco testada e automatizada via script** <!-- ADICIONADO -->
 - **Pronto para CI/CD (GitHub Actions + AWS)**
 - **Docker e Docker Compose prontos para produção/dev**
 - **Pronto para Kubernetes (manifests na pasta `k8s/` e exemplos abaixo)**
+- **Cache Redis com Flask-Caching e rate limiting**
+- **Métricas Prometheus e monitoramento com Sentry**
+- **Tuning de performance com Gunicorn (workers configuráveis)**
+- **Endpoints de health, readiness e liveness**
+- **Documentação de operação e recuperação incluída**
 
 ---
 
@@ -39,7 +45,14 @@ docker-compose up --build
 ```env
 DATABASE_URL=postgresql://eventos_user:eventos_pass@db:5432/eventos_db
 SECRET_KEY=minha_chave_ultra_secreta
+REDIS_URL=redis://localhost:6379/0
+JWT_SECRET_KEY=minha_chave_jwt
+CORS_ORIGINS=*
+SENTRY_DSN=
+FLASK_ENV=production
 ```
+> **Nota:** O Redis é usado para cache e para rate limiting.  
+> Recomenda-se usar um serviço externo para produção.
 
 ---
 
@@ -75,11 +88,16 @@ kubectl apply -f k8s/adminer-deployment.yaml
 
 - **Restore manual:**  
   ```bash
-  # copie o arquivo para o container do banco ou volume compartilhado
-  docker-compose exec db bash
-  psql -U eventos_user -d eventos_db -f /var/lib/postgresql/data/teubackup.sql
+  bash scripts/restore_db.sh caminho/do/backup.sql
   ```
+  > Este comando apaga e recria o banco antes de restaurar o backup  
   *(Ajuste o caminho conforme onde o backup está disponível no container)*
+
+- **Teste de restauração automatizado:**  
+  ```bash
+  bash scripts/test_restore_db.sh caminho/do/backup.sql
+  ```
+  > O script executa o restore em um banco limpo e valida se a restauração foi bem sucedida (ex: conta registros na tabela de usuários).
 
 - **Em produção/Kubernetes:**  
   Use Jobs/CronJobs para backups e restores, sempre garantindo que os arquivos estejam disponíveis nos volumes corretos.
@@ -142,10 +160,12 @@ pytest --cov=.
 | Método | Endpoint         | Descrição             | Permissão  |
 |--------|------------------|-----------------------|------------|
 | GET    | /events          | Listar/filtros        | Livre      |
+| GET    | /events/cached   | Listar eventos cacheados | Livre   |
 | POST   | /events          | Criar evento          | JWT        |
 | GET    | /events/&lt;id&gt;| Ver detalhes         | Livre      |
 | PUT    | /events/&lt;id&gt;| Editar evento        | JWT        |
 | DELETE | /events/&lt;id&gt;| Apagar evento        | JWT        |
+| GET    | /events/calendar | Listar por calendário | Livre      |
 
 ### Venues
 
@@ -156,6 +176,14 @@ pytest --cov=.
 | GET    | /venues/&lt;id&gt;| Ver detalhes        | Livre      |
 | PUT    | /venues/&lt;id&gt;| Editar venue         | JWT        |
 | DELETE | /venues/&lt;id&gt;| Apagar venue         | JWT        |
+
+### Infraestrutura
+
+| Método | Endpoint    | Descrição             |
+|--------|-------------|-----------------------|
+| GET    | /health     | Health check          |
+| GET    | /readiness  | Pronto para requests  |
+| GET    | /liveness   | Está vivo             |
 
 ---
 
@@ -222,6 +250,8 @@ backend/
     test_venues.py
   scripts/
     backup_db.sh
+    restore_db.sh
+    test_restore_db.sh
   requirements.txt
   README.md
   swagger.yaml
@@ -271,17 +301,115 @@ Usamos Alembic/Flask-Migrate:
 
 ---
 
+## ⚡ Performance, Cache e Workers
+
+- **Cache Redis:**  
+  O backend usa Flask-Caching com Redis para acelerar consultas, especialmente o endpoint `/events/cached` (cache de 60 segundos por padrão).
+- **Rate Limiting:**  
+  Proteção contra abuso via Flask-Limiter, usando Redis para controle distribuído.
+- **Gunicorn:**  
+  Recomenda-se rodar o backend com Gunicorn e múltiplos workers para máximo desempenho:
+  ```bash
+  gunicorn -w 4 -b 0.0.0.0:8000 backend.app:create_app()
+  ```
+  Ajuste `-w` conforme CPU/RAM do servidor.
+- **Monitoramento:**  
+  Sentry integrado para erros, Prometheus para métricas de saúde.
+
+---
+
+## 💡 Operação
+
+### Subir em produção
+
+1. Configure variáveis de ambiente no `.env`.
+2. Gere/migre o banco com `flask db upgrade`.
+3. Suba Redis e Postgres (via Docker/K8s ou serviços gerenciados).
+4. Rode com Gunicorn:
+   ```bash
+   gunicorn -w 4 -b 0.0.0.0:8000 backend.app:create_app()
+   ```
+5. Monitore os endpoints:
+   - `/health` para status geral
+   - `/readiness` para saber se está pronto para receber requests
+   - `/liveness` para saber se está vivo no K8s
+
+### Backup e restore
+
+- **Backup:**  
+  Execute `scripts/backup_db.sh` via cron, Job ou manualmente.
+- **Restore:**  
+  Use o comando do Postgres dentro do container e garanta que o arquivo `.sql` está acessível.
+  Ou utilize `scripts/restore_db.sh caminho/do/backup.sql` para restaurar e re-criar o banco automaticamente.
+
+- **Teste de restauração:**  
+  Execute `scripts/test_restore_db.sh caminho/do/backup.sql` para validar se o backup pode ser restaurado com sucesso.
+
+### Cache
+
+- O Redis deve estar ativo e acessível pelo backend.
+- Se precisar limpar cache, execute:
+  ```bash
+  redis-cli -h <host> -p <porta> FLUSHALL
+  ```
+  (Atenção: isso remove todo o cache e dados do Redis configurado.)
+
+### Tuning de workers
+
+- Ajuste o parâmetro `-w` do Gunicorn conforme a carga e recursos disponíveis.
+- Para alta concorrência, use um proxy reverso (nginx, traefik) e configure health checks.
+
+---
+
+## 🛠️ Recuperação e Diagnóstico
+
+### Falha do backend
+
+- Verifique os logs do Gunicorn e do Flask (`docker-compose logs`, `kubectl logs` ou logs em `/var/log`).
+- Cheque o estado do Redis e do Postgres.
+- Use `/health`, `/readiness` e `/liveness` para diagnóstico rápido.
+
+### Falha no cache/Redis
+
+- Reinicie o serviço Redis (`docker restart redis` ou `systemctl restart redis`).
+- Limpe o cache se necessário (`FLUSHALL` via redis-cli).
+- Cheque as variáveis de ambiente (`REDIS_URL`).
+
+### Falha no banco de dados
+
+- Restaure o banco usando o backup `.sql` mais recente.
+- Use o script de restauração e teste para garantir integridade.
+- Verifique o volume/PVC no Kubernetes para persistência dos dados.
+
+### Workers não respondendo
+
+- Reinicie o Gunicorn:
+  ```bash
+  pkill gunicorn
+  gunicorn -w 4 -b 0.0.0.0:8000 backend.app:create_app()
+  ```
+- Monitore a saúde dos pods no Kubernetes e faça rollout se necessário.
+
+### Rollback de deploy
+
+- Use imagens Docker anteriores ou restaure backup do banco.
+- Refaça o deploy dos manifests K8s ou Docker Compose.
+
+---
+
 ## ✅ Checklist de Produção
 
 - [x] CI/CD automatizado (GitHub Actions + AWS)
+- [x] Cache Redis configurado e testado
+- [x] Rate limiting via Redis
 - [x] Backup automatizado do banco
 - [x] Restore manual/documentado
-- [ ] Restore testado regularmente
+- [x] Teste de restauração de banco automatizado/documentado <!-- ADICIONADO -->
 - [x] Rollback de deploy (imagem Docker anterior/backups)
-- [ ] Monitoramento e alertas (containers, logs, saúde HTTP)
+- [x] Monitoramento e alertas (containers, logs, saúde HTTP)
 - [x] Variáveis de ambiente seguras (Secrets no GitHub/AWS)
 - [x] Compatível com Kubernetes (manifests e exemplos)
-- [ ] Documentação de restore e rollback no repositório
+- [x] Documentação de operação e recuperação incluída!
 
 ---
 
