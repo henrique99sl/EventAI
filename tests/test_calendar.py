@@ -17,7 +17,7 @@ def test_calendar_returns_events_in_interval(client, user_token):
             json={"name": f"Event {i}", "date": d.isoformat(), "venue_id": venue_id},
             headers=headers
         )
-        event_ids.append(resp_event.get_json()["id"])
+        event_ids.append(_resp_event.get_json()["id"])
 
     # Consulta calendário para o intervalo
     start = today.isoformat()

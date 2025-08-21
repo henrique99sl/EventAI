@@ -8,7 +8,7 @@ def test_full_flow(client):
     token = resp.json()["access_token"]
     # Criação de evento
     resp = client.post("/events", json={"title": "Evento Flow", "date": "2025-08-13"},
-        headers={"Authorization": f"Bearer {token}"})
+                       headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 201
     event_id = resp.json()["id"]
     # Participação

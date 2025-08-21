@@ -7,6 +7,7 @@ from models import db
 from models.user import User
 from werkzeug.security import generate_password_hash
 
+
 @pytest.fixture(scope="session")
 def app():
     """Cria app Flask para testes com banco em memória e seed de admin."""
@@ -33,10 +34,12 @@ def app():
         db.session.remove()
         db.drop_all()
 
+
 @pytest.fixture
 def db_session(app):
     """Retorna o objeto db inicializado para o app de teste."""
     return db
+
 
 @pytest.fixture
 def client(app):
@@ -55,6 +58,7 @@ def client(app):
         db.session.commit()
     return app.test_client()
 
+
 @pytest.fixture
 def unique_email():
     """Retorna função para gerar email único."""
@@ -62,12 +66,14 @@ def unique_email():
         return f"{prefix}_{uuid.uuid4().hex}@test.com"
     return _gen
 
+
 @pytest.fixture
 def unique_username():
     """Retorna função para gerar username único."""
     def _gen(prefix="user"):
         return f"{prefix}_{uuid.uuid4().hex[:8]}"
     return _gen
+
 
 @pytest.fixture
 def admin_token(client):
@@ -77,6 +83,7 @@ def admin_token(client):
     )
     assert login.status_code == 200, f"Admin login failed: {login.get_json()}"
     return login.get_json()["token"]
+
 
 @pytest.fixture
 def user_token(client, unique_email, unique_username):
@@ -94,6 +101,7 @@ def user_token(client, unique_email, unique_username):
     )
     assert login.status_code == 200, f"User login failed: {login.get_json()}"
     return login.get_json()["token"]
+
 
 @pytest.fixture
 def make_user_token(client, unique_email, unique_username):
@@ -114,6 +122,7 @@ def make_user_token(client, unique_email, unique_username):
         return login.get_json()["token"]
     return _make
 
+
 @pytest.fixture
 def token_expiry(app):
     """Retorna um JWT já expirado para teste."""
@@ -127,6 +136,7 @@ def token_expiry(app):
     if isinstance(token, bytes):
         token = token.decode("utf-8")
     return token
+
 
 @pytest.fixture
 def refresh_token(client, unique_email, unique_username):
@@ -146,6 +156,7 @@ def refresh_token(client, unique_email, unique_username):
     # Adapte ao seu backend: troque "refresh_token" pela chave correta se necessário
     return login.get_json().get("refresh_token", "dummy-refresh-token")
 
+
 @pytest.fixture
 def venue(client, admin_token):
     """Cria uma venue de teste e retorna seu id."""
@@ -161,6 +172,7 @@ def venue(client, admin_token):
     assert resp.status_code == 201, f"Venue creation failed: {resp.get_json()}"
     venue_id = resp.get_json()["id"]
     return venue_id
+
 
 @pytest.fixture
 def event(client, user_token, venue):
