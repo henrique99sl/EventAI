@@ -1,4 +1,3 @@
-import pytest
 import time
 
 def test_login_with_expired_token(client, user_token, token_expiry):

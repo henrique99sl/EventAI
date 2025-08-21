@@ -1,8 +1,7 @@
-import pytest
-
 def test_full_flow(client):
     # Criação de usuário
-    resp = client.post("/users", json={"username": "flowuser", "email": "flowuser@gmail.com", "password": "SenhaF0rte!"})
+    resp = client.post("/users",
+    json={"username": "flowuser", "email": "flowuser@gmail.com", "password": "SenhaF0rte!"})
     print("USER CREATE RESPONSE:", resp.get_json())
     assert resp.status_code == 201
 
@@ -13,12 +12,14 @@ def test_full_flow(client):
     token = resp.get_json()["token"]
 
     # Criação de venue
-    venue_resp = client.post("/venues", json={"name": "Venue Flow", "address": "Rua Flow"}, headers={"Authorization": f"Bearer {token}"})
+    venue_resp = client.post("/venues", json={"name": "Venue Flow", "address": "Rua Flow"},
+        headers={"Authorization": f"Bearer {token}"})
     assert venue_resp.status_code == 201
     venue_id = venue_resp.get_json()["id"]
 
     # Criação de evento
-    resp = client.post("/events", json={"name": "Evento Flow", "date": "2025-08-13", "venue_id": venue_id}, headers={"Authorization": f"Bearer {token}"})
+    resp = client.post("/events", json={"name": "Evento Flow", "date": "2025-08-13", "venue_id": venue_id},
+        headers={"Authorization": f"Bearer {token}"})
     print("EVENT CREATE RESPONSE:", resp.get_json())
     assert resp.status_code == 201
     event_id = resp.get_json()["id"]

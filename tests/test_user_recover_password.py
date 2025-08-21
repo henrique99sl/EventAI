@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture
 def user(client, unique_email, unique_username):
     """
@@ -16,13 +17,16 @@ def user(client, unique_email, unique_username):
     from models.user import User
     return User.query.filter_by(email=email).first()
 
+
 def test_send_password_reset_email(client, user):
     resp = client.post("/users/recover-password", json={"email": user.email})
     assert resp.status_code == 200
 
+
 def test_recover_password_invalid_email(client):
     resp = client.post("/users/recover-password", json={"email": "naoexiste@email.com"})
     assert resp.status_code == 404
+
 
 def test_reset_password_token_flow(client, user):
     # 1. Solicita token de recuperação

@@ -178,6 +178,7 @@ def event(client, user_token, venue):
     )
     assert resp.status_code == 201, f"Event creation failed: {resp.get_json()}"
     event_json = resp.get_json()
+
     class EventObj:
         def __init__(self, data):
             self.__dict__ = data

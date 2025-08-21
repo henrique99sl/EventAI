@@ -1,5 +1,6 @@
 import io
 
+
 def test_upload_image_to_event(client, user_token):
     # Cria venue e evento
     headers = {"Authorization": f"Bearer {user_token}"}
@@ -16,6 +17,7 @@ def test_upload_image_to_event(client, user_token):
     resp4 = client.get(f"/events/{event_id}/image", headers=headers)
     assert resp4.status_code == 200
     assert resp4.content_type.startswith("image/")
+
 
 def test_upload_invalid_file_type(client, user_token):
     headers = {"Authorization": f"Bearer {user_token}"}
