@@ -34,7 +34,7 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
     # Cria venue e evento fora do intervalo
     resp_venue = client.post("/venues", json={"name": "Another Venue", "address": "Another Address"}, headers=headers)
     venue_id = resp_venue.get_json()["id"]
-    _resp_event = client.post(
+    client.post(
         "/events",
         json={"name": "Out of Interval Event", "date": "2100-01-01", "venue_id": venue_id},
         headers=headers
@@ -55,7 +55,7 @@ def test_calendar_event_structure(client, user_token):
     # Cria venue e evento
     resp_venue = client.post("/venues", json={"name": "Struct Venue", "address": "Struct Address"}, headers=headers)
     venue_id = resp_venue.get_json()["id"]
-    _resp_event = client.post(
+    client.post(
         "/events",
         json={"name": "Structure Test", "date": date.today().isoformat(), "venue_id": venue_id},
         headers=headers
