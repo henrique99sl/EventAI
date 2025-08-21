@@ -35,14 +35,14 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+          key: ${{ runner.os }}-pip-${{ hashFiles('backend/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r ../requirements.txt  
+          pip install -r requirements.txt
 
       - name: Lint with flake8
         run: |
@@ -63,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage-xml
-          path: coverage.xml
+          path: backend/coverage.xml
 
   build-docker:
     name: Build Docker image
@@ -113,8 +113,8 @@ jobs:
         id: task-def
         uses: aws-actions/amazon-ecs-render-task-definition@v1
         with:
-          task-definition: task-definition.json
-          container-name: eventai-backend # Certifique-se que está igual ao seu task-definition.json
+          task-definition: backend/task-definition.json
+          container-name: eventai-backend
           image: ${{ secrets.ECR_REPOSITORY }}:${{ github.sha }}
 
       - name: Deploy ECS service
