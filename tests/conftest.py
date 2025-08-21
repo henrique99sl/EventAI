@@ -40,6 +40,10 @@ def db_session(app):
     """Retorna o objeto db inicializado para o app de teste."""
     return db
 
+@pytest.fixture
+def db(app):
+    """Retorna o objeto db inicializado para o app de teste (alias para db_session)."""
+    return db
 
 @pytest.fixture
 def client(app):
@@ -124,6 +128,21 @@ def make_user_token(client, unique_email, unique_username):
 
 
 @pytest.fixture
+def user(client, unique_email, unique_username):
+    """Cria usuário de teste e retorna seu objeto."""
+    email = unique_email("user")
+    username = unique_username("user")
+    password = "User1234"
+    resp = client.post(
+        "/users",
+        json={"username": username, "email": email, "password": password},
+    )
+    assert resp.status_code == 201, f"User creation failed: {resp.get_json()}"
+    # Retorna o dict do usuário criado (ajuste conforme seu modelo)
+    return resp.get_json()
+
+
+@pytest.fixture
 def token_expiry(app):
     """Retorna um JWT já expirado para teste."""
     expired_payload = {
@@ -184,7 +203,6 @@ def event(client, user_token, venue):
             "description": "Descrição do evento",
             "date": "2025-08-21T10:00:00",
             "venue_id": venue
-            # Se teu endpoint exige owner_id, adiciona: "owner_id": 1
         },
         headers={"Authorization": f"Bearer {user_token}"}
     )
