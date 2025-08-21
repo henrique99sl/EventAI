@@ -1,12 +1,14 @@
-import pytest
+
 
 def test_send_password_reset_email(client):
     resp = client.post("/users/recover-password", json={"email": "user@email.com"})
     assert resp.status_code == 200
 
+
 def test_recover_password_invalid_email(client):
     resp = client.post("/users/recover-password", json={"email": "naoexiste@email.com"})
     assert resp.status_code == 404
+
 
 def test_reset_password_token_flow(client, db, user):
     # Supondo endpoint de reset de senha por token

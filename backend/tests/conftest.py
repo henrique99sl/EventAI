@@ -4,6 +4,7 @@ from app import create_app, db
 from models.user import User
 from werkzeug.security import generate_password_hash
 
+
 @pytest.fixture(scope="session")
 def app():
     """Cria app Flask para testes com banco em memória e seed de admin."""
@@ -30,6 +31,7 @@ def app():
         db.session.remove()
         db.drop_all()
 
+
 @pytest.fixture
 def client(app):
     """Cria client Flask limpo para cada teste e reseed do admin."""
@@ -47,6 +49,7 @@ def client(app):
         db.session.commit()
     return app.test_client()
 
+
 @pytest.fixture
 def unique_email():
     """Retorna função para gerar email único."""
@@ -54,12 +57,14 @@ def unique_email():
         return f"{prefix}_{uuid.uuid4().hex}@test.com"
     return _gen
 
+
 @pytest.fixture
 def unique_username():
     """Retorna função para gerar username único."""
     def _gen(prefix="user"):
         return f"{prefix}_{uuid.uuid4().hex[:8]}"
     return _gen
+
 
 @pytest.fixture
 def admin_token(client):
@@ -69,6 +74,7 @@ def admin_token(client):
     )
     assert login.status_code == 200, f"Admin login failed: {login.get_json()}"
     return login.get_json()["token"]
+
 
 @pytest.fixture
 def user_token(client, unique_email, unique_username):
@@ -86,6 +92,7 @@ def user_token(client, unique_email, unique_username):
     )
     assert login.status_code == 200, f"User login failed: {login.get_json()}"
     return login.get_json()["token"]
+
 
 @pytest.fixture
 def make_user_token(client, unique_email, unique_username):
