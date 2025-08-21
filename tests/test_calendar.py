@@ -4,7 +4,11 @@ from datetime import date, timedelta
 def test_calendar_returns_events_in_interval(client, user_token):
     headers = {"Authorization": f"Bearer {user_token}"}
     # Cria venue
-    resp_venue = client.post("/venues", json={"name": "Test Venue", "address": "Test Address"}, headers=headers)
+    resp_venue = client.post(
+        "/venues",
+        json={"name": "Test Venue", "address": "Test Address"},
+        headers=headers,
+    )
     venue_id = resp_venue.get_json()["id"]
 
     # Cria eventos em datas diferentes
@@ -15,7 +19,7 @@ def test_calendar_returns_events_in_interval(client, user_token):
         resp_event = client.post(
             "/events",
             json={"name": f"Event {i}", "date": d.isoformat(), "venue_id": venue_id},
-            headers=headers
+            headers=headers,
         )
         # Usa resp_event, evitando F841
         assert resp_event.status_code == 201
@@ -34,12 +38,20 @@ def test_calendar_returns_events_in_interval(client, user_token):
 def test_calendar_excludes_events_outside_interval(client, user_token):
     headers = {"Authorization": f"Bearer {user_token}"}
     # Cria venue e evento fora do intervalo
-    resp_venue = client.post("/venues", json={"name": "Another Venue", "address": "Another Address"}, headers=headers)
+    resp_venue = client.post(
+        "/venues",
+        json={"name": "Another Venue", "address": "Another Address"},
+        headers=headers,
+    )
     venue_id = resp_venue.get_json()["id"]
     resp_event = client.post(
         "/events",
-        json={"name": "Out of Interval Event", "date": "2100-01-01", "venue_id": venue_id},
-        headers=headers
+        json={
+            "name": "Out of Interval Event",
+            "date": "2100-01-01",
+            "venue_id": venue_id,
+        },
+        headers=headers,
     )
     # Usa resp_event, evitando F841
     assert resp_event.status_code == 201
@@ -47,7 +59,8 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
     today = date.today()
     resp = client.get(
         f"/events/calendar?start={today.isoformat()}&end={(today + timedelta(days=7)).isoformat()}",
-        headers=headers)
+        headers=headers,
+    )
     assert resp.status_code == 200
     events = resp.get_json()
     assert all(ev["name"] != "Out of Interval Event" for ev in events)
@@ -56,18 +69,27 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
 def test_calendar_event_structure(client, user_token):
     headers = {"Authorization": f"Bearer {user_token}"}
     # Cria venue e evento
-    resp_venue = client.post("/venues", json={"name": "Struct Venue", "address": "Struct Address"}, headers=headers)
+    resp_venue = client.post(
+        "/venues",
+        json={"name": "Struct Venue", "address": "Struct Address"},
+        headers=headers,
+    )
     venue_id = resp_venue.get_json()["id"]
     resp_event = client.post(
         "/events",
-        json={"name": "Structure Test", "date": date.today().isoformat(), "venue_id": venue_id},
-        headers=headers
+        json={
+            "name": "Structure Test",
+            "date": date.today().isoformat(),
+            "venue_id": venue_id,
+        },
+        headers=headers,
     )
     # Usa resp_event, evitando F841
     assert resp_event.status_code == 201
     resp = client.get(
         f"/events/calendar?start={date.today().isoformat()}&end={date.today().isoformat()}",
-        headers=headers)
+        headers=headers,
+    )
     assert resp.status_code == 200
     events = resp.get_json()
     for ev in events:

@@ -15,4 +15,3 @@ Flask-Limiter[redis]
 redis
 sentry-sdk
 python-json-logger
-flask_caching

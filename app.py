@@ -23,6 +23,7 @@ from pythonjsonlogger import jsonlogger
 
 try:
     from prometheus_flask_exporter import PrometheusMetrics
+
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -30,6 +31,7 @@ except ImportError:
 try:
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
+
     RATE_LIMITER_AVAILABLE = True
 except ImportError:
     RATE_LIMITER_AVAILABLE = False
@@ -64,6 +66,7 @@ def create_app(test_config=None):
     db.init_app(app)
 
     from flask_migrate import Migrate
+
     Migrate(app, db)
 
     SENTRY_DSN = os.getenv("SENTRY_DSN")
@@ -98,11 +101,14 @@ def create_app(test_config=None):
             default_limits=limiter_default,
         )
 
-    cache = Cache(app, config={
-        "CACHE_TYPE": "RedisCache",
-        "CACHE_REDIS_URL": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
-        "CACHE_DEFAULT_TIMEOUT": 300
-    })
+    cache = Cache(
+        app,
+        config={
+            "CACHE_TYPE": "RedisCache",
+            "CACHE_REDIS_URL": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
+            "CACHE_DEFAULT_TIMEOUT": 300,
+        },
+    )
 
     @app.errorhandler(404)
     def not_found_error(error):
@@ -140,8 +146,12 @@ def create_app(test_config=None):
             {
                 "id": ev.id,
                 "name": ev.name,
-                "date": ev.date.isoformat() if hasattr(ev.date, "isoformat") else str(ev.date),
-                "venue": ev.venue_id
+                "date": (
+                    ev.date.isoformat()
+                    if hasattr(ev.date, "isoformat")
+                    else str(ev.date)
+                ),
+                "venue": ev.venue_id,
             }
             for ev in events
         ]
@@ -161,7 +171,10 @@ def create_app(test_config=None):
                 datetime.strptime(date, "%Y-%m-%d")
                 query = query.filter(Event.date == date)
             except ValueError:
-                return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
+                return (
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
+                    400,
+                )
         if venue_id:
             query = query.filter(Event.venue_id == venue_id)
         events = query.all()
@@ -173,7 +186,10 @@ def create_app(test_config=None):
         def decorated(*args, **kwargs):
             auth_header = request.headers.get("Authorization", None)
             if not auth_header or not auth_header.startswith("Bearer "):
-                return jsonify({"error": "Missing or invalid Authorization header"}), 401
+                return (
+                    jsonify({"error": "Missing or invalid Authorization header"}),
+                    401,
+                )
             token = auth_header.split(" ")[1]
             try:
                 payload = jwt.decode(
@@ -188,6 +204,7 @@ def create_app(test_config=None):
                 return jsonify({"error": "User not found"}), 401
             g.current_user = user
             return f(*args, **kwargs)
+
         return decorated
 
     def admin_required(f):
@@ -197,6 +214,7 @@ def create_app(test_config=None):
             if user.role != "admin":
                 return jsonify({"error": "Acesso restrito a administradores"}), 403
             return f(*args, **kwargs)
+
         return decorated
 
     def is_strong_password(password):
@@ -241,7 +259,10 @@ def create_app(test_config=None):
         role = data.get("role", "user")
 
         if not username or not email or not password:
-            return jsonify({"error": "Username, email e password são obrigatórios"}), 400
+            return (
+                jsonify({"error": "Username, email e password são obrigatórios"}),
+                400,
+            )
 
         try:
             validate_email(email)
@@ -249,12 +270,17 @@ def create_app(test_config=None):
             return jsonify({"error": "E-mail inválido"}), 400
 
         if not is_strong_password(password):
-            return jsonify({
-                "error": (
-                    "Senha fraca. Use mínimo 8 caracteres, \n"
-                    "letras maiúsculas, minúsculas e número."
-                )
-            }), 400
+            return (
+                jsonify(
+                    {
+                        "error": (
+                            "Senha fraca. Use mínimo 8 caracteres, \n"
+                            "letras maiúsculas, minúsculas e número."
+                        )
+                    }
+                ),
+                400,
+            )
 
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -267,7 +293,14 @@ def create_app(test_config=None):
         if role == "admin":
             admin_header = request.headers.get("Authorization", None)
             if not admin_header or not admin_header.startswith("Bearer "):
-                return jsonify({"error": "Apenas administradores podem criar outros administradores"}), 403
+                return (
+                    jsonify(
+                        {
+                            "error": "Apenas administradores podem criar outros administradores"
+                        }
+                    ),
+                    403,
+                )
             token = admin_header.split(" ")[1]
             try:
                 payload = jwt.decode(
@@ -275,9 +308,23 @@ def create_app(test_config=None):
                 )
                 admin_user = User.query.get(payload["user_id"])
                 if not admin_user or admin_user.role != "admin":
-                    return jsonify({"error": "Apenas administradores podem criar outros administradores"}), 403
+                    return (
+                        jsonify(
+                            {
+                                "error": "Apenas administradores podem criar outros administradores"
+                            }
+                        ),
+                        403,
+                    )
             except Exception:
-                return jsonify({"error": "Apenas administradores podem criar outros administradores"}), 403
+                return (
+                    jsonify(
+                        {
+                            "error": "Apenas administradores podem criar outros administradores"
+                        }
+                    ),
+                    403,
+                )
 
         password_hash = generate_password_hash(password)
         user = User(
@@ -344,8 +391,15 @@ def create_app(test_config=None):
         # Aqui seria enviado o email de recuperação (mocked para testes)
         # Gera um token de reset fake para testes
         reset_token = email[::-1]  # exemplo: token é o email invertido
-        return jsonify({"message": "Se o email existir, foi enviado um link de recuperação",
-                       "reset_token": reset_token}), 200
+        return (
+            jsonify(
+                {
+                    "message": "Se o email existir, foi enviado um link de recuperação",
+                    "reset_token": reset_token,
+                }
+            ),
+            200,
+        )
 
     @app.route("/users/reset-password", methods=["POST"])
     def reset_password():
@@ -535,7 +589,10 @@ def create_app(test_config=None):
                 datetime.strptime(date, "%Y-%m-%d")
                 query = query.filter(Event.date == date)
             except ValueError:
-                return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
+                return (
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
+                    400,
+                )
         if venue_id:
             query = query.filter(Event.venue_id == venue_id)
         if creator_id:
@@ -604,7 +661,10 @@ def create_app(test_config=None):
                 date_obj = datetime.strptime(data["date"], "%Y-%m-%d").date()
                 event.date = date_obj
             except ValueError:
-                return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
+                return (
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
+                    400,
+                )
         if "venue_id" in data:
             if not Venue.query.get(data["venue_id"]):
                 return jsonify({"error": "Venue inexistente"}), 400
@@ -644,7 +704,9 @@ def create_app(test_config=None):
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
         user_id = g.current_user.id
-        participation = EventParticipation.query.filter_by(user_id=user_id, event_id=event_id).first()
+        participation = EventParticipation.query.filter_by(
+            user_id=user_id, event_id=event_id
+        ).first()
         if participation:
             return jsonify({"error": "Usuário já participa"}), 400
         participation = EventParticipation(user_id=user_id, event_id=event_id)
@@ -659,7 +721,9 @@ def create_app(test_config=None):
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
         user_id = g.current_user.id
-        participation = EventParticipation.query.filter_by(user_id=user_id, event_id=event_id).first()
+        participation = EventParticipation.query.filter_by(
+            user_id=user_id, event_id=event_id
+        ).first()
         if not participation:
             return jsonify({"error": "Usuário não está participando"}), 400
         db.session.delete(participation)
@@ -677,8 +741,11 @@ def create_app(test_config=None):
             return jsonify({"error": "Nenhum arquivo enviado"}), 400
         file = request.files["file"]
         # Aceite só PNG/JPG/JPEG
-        if not (file.filename.lower().endswith(".png") or file.filename.lower().endswith(
-                ".jpg") or file.filename.lower().endswith(".jpeg")):
+        if not (
+            file.filename.lower().endswith(".png")
+            or file.filename.lower().endswith(".jpg")
+            or file.filename.lower().endswith(".jpeg")
+        ):
             return jsonify({"error": "Tipo de arquivo não suportado"}), 400
         filename = f"event_{event_id}_{file.filename}"
         os.makedirs("uploads", exist_ok=True)
