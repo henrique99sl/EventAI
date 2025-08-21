@@ -1,4 +1,4 @@
-import pytest
+
 
 def test_delete_user_removes_events_and_participations(client, admin_token, make_user_token):
     # Cria usuário e eventos/participações
@@ -18,6 +18,7 @@ def test_delete_user_removes_events_and_participations(client, admin_token, make
     # Tenta acessar evento/participação do usuário deletado
     resp4 = client.get(f"/events/{event_id}")
     assert resp4.status_code in (404, 410)  # Pode ser 410 Gone se removido em cascata
+
 
 def test_delete_event_removes_participations(client, user_token):
     # Cria venue e evento

@@ -3,6 +3,7 @@ from models.event import Event
 
 calendar_bp = Blueprint('calendar', __name__)
 
+
 @calendar_bp.route('/events/calendar')
 def events_calendar():
     start = request.args.get('start')

@@ -1,5 +1,6 @@
 from models import db
 
+
 class EventParticipation(db.Model):
     __tablename__ = "event_participation"
     id = db.Column(db.Integer, primary_key=True)

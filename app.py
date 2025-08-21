@@ -45,6 +45,7 @@ def create_event_logic(name, date_obj, venue_id, owner_id):
     db.session.commit()
     return event
 
+
 def create_app(test_config=None):
     load_dotenv()
     app = Flask(__name__)
@@ -248,7 +249,12 @@ def create_app(test_config=None):
             return jsonify({"error": "E-mail inválido"}), 400
 
         if not is_strong_password(password):
-            return jsonify({"error": "Senha fraca. Use mínimo 8 caracteres, letras maiúsculas, minúsculas e número."}), 400
+            return jsonify({
+                "error": (
+                    "Senha fraca. Use mínimo 8 caracteres, \n"
+                    "letras maiúsculas, minúsculas e número."
+                )
+            }), 400
 
         existing_user = User.query.filter_by(email=email).first()
         if existing_user:
@@ -338,7 +344,8 @@ def create_app(test_config=None):
         # Aqui seria enviado o email de recuperação (mocked para testes)
         # Gera um token de reset fake para testes
         reset_token = email[::-1]  # exemplo: token é o email invertido
-        return jsonify({"message": "Se o email existir, foi enviado um link de recuperação", "reset_token": reset_token}), 200
+        return jsonify({"message": "Se o email existir, foi enviado um link de recuperação",
+                       "reset_token": reset_token}), 200
 
     @app.route("/users/reset-password", methods=["POST"])
     def reset_password():
@@ -421,8 +428,11 @@ def create_app(test_config=None):
         if not user or not check_password_hash(user.password_hash, password):
             return jsonify({"error": "Invalid credentials"}), 401
 
-        # Suporte a expiração customizada de token
-        exp_time = datetime.utcnow() + timedelta(seconds=expires_in) if expires_in else datetime.utcnow() + timedelta(hours=2)
+        exp_time = (
+            datetime.utcnow() + timedelta(seconds=expires_in)
+            if expires_in
+            else datetime.utcnow() + timedelta(hours=2)
+        )
         payload = {"user_id": user.id, "exp": exp_time}
         token = jwt.encode(payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
         if isinstance(token, bytes):
@@ -667,7 +677,8 @@ def create_app(test_config=None):
             return jsonify({"error": "Nenhum arquivo enviado"}), 400
         file = request.files["file"]
         # Aceite só PNG/JPG/JPEG
-        if not (file.filename.lower().endswith(".png") or file.filename.lower().endswith(".jpg") or file.filename.lower().endswith(".jpeg")):
+        if not (file.filename.lower().endswith(".png") or file.filename.lower().endswith(
+                ".jpg") or file.filename.lower().endswith(".jpeg")):
             return jsonify({"error": "Tipo de arquivo não suportado"}), 400
         filename = f"event_{event_id}_{file.filename}"
         os.makedirs("uploads", exist_ok=True)
@@ -693,6 +704,7 @@ def create_app(test_config=None):
         return send_file(filepath, mimetype="image/png")
 
     return app
+
 
 if __name__ == "__main__":
     app = create_app()

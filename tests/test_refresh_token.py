@@ -1,5 +1,5 @@
 import time
-import pytest
+
 
 def test_token_expiry_and_refresh(client):
     # Criação de usuário
