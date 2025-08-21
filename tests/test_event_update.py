@@ -1,5 +1,6 @@
 import pytest
 
+
 @pytest.fixture
 def event(client, user_token):
     resp = client.post("/events", json={
