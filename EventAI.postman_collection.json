@@ -1,0 +1,194 @@
+{
+    "info": {
+      "name": "EventAI API",
+      "_postman_id": "a1b2c3d4-e5f6-7890-abcd-1234567890ef",
+      "description": "Coleção Postman para testar a API EventAI",
+      "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+      {
+        "name": "Auth - Login",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"email\": \"user@exemplo.com\",\n  \"password\": \"senhaSegura123\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:8000/login",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["login"]
+          }
+        }
+      },
+      {
+        "name": "Auth - Me (user info)",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}"
+            }
+          ],
+          "url": {
+            "raw": "http://localhost:8000/me",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["me"]
+          }
+        }
+      },
+      {
+        "name": "Users - List",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "http://localhost:8000/users",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["users"]
+          }
+        }
+      },
+      {
+        "name": "Users - Create",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"username\": \"jose\",\n  \"email\": \"jose@exemplo.com\",\n  \"password\": \"SenhaSegura123\",\n  \"role\": \"user\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:8000/users",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["users"]
+          }
+        }
+      },
+      {
+        "name": "Users - Get by ID",
+        "request": {
+          "method": "GET",
+          "header": [
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}"
+            }
+          ],
+          "url": {
+            "raw": "http://localhost:8000/users/1",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["users", "1"]
+          }
+        }
+      },
+      {
+        "name": "Events - List",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "http://localhost:8000/events",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["events"]
+          }
+        }
+      },
+      {
+        "name": "Events - Create",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Show da Banda\",\n  \"date\": \"2025-08-20\",\n  \"venue_id\": 1\n}"
+          },
+          "url": {
+            "raw": "http://localhost:8000/events",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["events"]
+          }
+        }
+      },
+      {
+        "name": "Venues - List",
+        "request": {
+          "method": "GET",
+          "url": {
+            "raw": "http://localhost:8000/venues",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["venues"]
+          }
+        }
+      },
+      {
+        "name": "Venues - Create",
+        "request": {
+          "method": "POST",
+          "header": [
+            {
+              "key": "Content-Type",
+              "value": "application/json"
+            },
+            {
+              "key": "Authorization",
+              "value": "Bearer {{token}}"
+            }
+          ],
+          "body": {
+            "mode": "raw",
+            "raw": "{\n  \"name\": \"Auditório Central\",\n  \"address\": \"Rua Exemplo, 123\"\n}"
+          },
+          "url": {
+            "raw": "http://localhost:8000/venues",
+            "protocol": "http",
+            "host": ["localhost"],
+            "port": "8000",
+            "path": ["venues"]
+          }
+        }
+      }
+    ],
+    "event": [],
+    "variable": [
+      {
+        "key": "token",
+        "value": ""
+      }
+    ]
+  }
