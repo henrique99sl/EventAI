@@ -16,3 +16,4 @@ redis
 sentry-sdk
 python-json-logger
 flask-caching
+pytest-mock
