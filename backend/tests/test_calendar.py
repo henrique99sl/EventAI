@@ -6,7 +6,10 @@ def test_calendar_returns_events_in_interval(client, user_token):
     # Cria venue
     resp_venue = client.post(
         "/venues",
-        json={"name": "Test Venue", "address": "Test Address"},
+        json={
+            "name": "Test Venue",
+            "address": "Test Address"
+        },
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]
@@ -18,7 +21,11 @@ def test_calendar_returns_events_in_interval(client, user_token):
     for i, d in enumerate(event_dates):
         resp_event = client.post(
             "/events",
-            json={"name": f"Event {i}", "date": d.isoformat(), "venue_id": venue_id},
+            json={
+                "name": f"Event {i}",
+                "date": d.isoformat(),
+                "venue_id": venue_id
+            },
             headers=headers,
         )
         # Usa resp_event, evitando F841
@@ -28,7 +35,10 @@ def test_calendar_returns_events_in_interval(client, user_token):
     # Consulta calendário para o intervalo
     start = today.isoformat()
     end = (today + timedelta(days=2)).isoformat()
-    resp = client.get(f"/events/calendar?start={start}&end={end}", headers=headers)
+    resp = client.get(
+        f"/events/calendar?start={start}&end={end}",
+        headers=headers
+    )
     assert resp.status_code == 200
     events = resp.get_json()
     names = [ev["name"] for ev in events]
@@ -40,7 +50,10 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
     # Cria venue e evento fora do intervalo
     resp_venue = client.post(
         "/venues",
-        json={"name": "Another Venue", "address": "Another Address"},
+        json={
+            "name": "Another Venue",
+            "address": "Another Address"
+        },
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]
@@ -57,8 +70,10 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
     assert resp_event.status_code == 201
     # Consulta intervalo que não inclui este evento
     today = date.today()
+    start = today.isoformat()
+    end = (today + timedelta(days=7)).isoformat()
     resp = client.get(
-        f"/events/calendar?start={today.isoformat()}&end={(today + timedelta(days=7)).isoformat()}",
+        f"/events/calendar?start={start}&end={end}",
         headers=headers,
     )
     assert resp.status_code == 200
@@ -71,7 +86,10 @@ def test_calendar_event_structure(client, user_token):
     # Cria venue e evento
     resp_venue = client.post(
         "/venues",
-        json={"name": "Struct Venue", "address": "Struct Address"},
+        json={
+            "name": "Struct Venue",
+            "address": "Struct Address"
+        },
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]
@@ -86,8 +104,10 @@ def test_calendar_event_structure(client, user_token):
     )
     # Usa resp_event, evitando F841
     assert resp_event.status_code == 201
+    start = date.today().isoformat()
+    end = date.today().isoformat()
     resp = client.get(
-        f"/events/calendar?start={date.today().isoformat()}&end={date.today().isoformat()}",
+        f"/events/calendar?start={start}&end={end}",
         headers=headers,
     )
     assert resp.status_code == 200

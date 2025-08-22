@@ -14,13 +14,10 @@ def events_calendar():
     if end:
         query = query.filter(Event.date <= end)
     events = query.order_by(Event.date).all()
-    result = [
-        {
-            "id": ev.id,
-            "name": ev.name,
-            "date": ev.date.isoformat(),
-            "venue": ev.venue_id,
-        }
-        for ev in events
-    ]
+    result = [{
+        "id": ev.id,
+        "name": ev.name,
+        "date": ev.date.isoformat(),
+        "venue": ev.venue_id,
+    } for ev in events]
     return jsonify(result)

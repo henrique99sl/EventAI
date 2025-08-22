@@ -26,7 +26,8 @@ def upgrade():
             existing_nullable=False,
         )
         batch_op.drop_constraint(batch_op.f("users_email_key"), type_="unique")
-        batch_op.drop_constraint(batch_op.f("users_username_key"), type_="unique")
+        batch_op.drop_constraint(batch_op.f("users_username_key"),
+                                 type_="unique")
         batch_op.drop_column("role")
         # REMOVIDO: batch_op.drop_column("created_at")
 
@@ -66,12 +67,11 @@ def downgrade():
                 server_default=sa.text("'participant'::character varying"),
                 autoincrement=False,
                 nullable=True,
-            )
-        )
-        batch_op.create_unique_constraint(
-            batch_op.f("users_username_key"), ["username"]
-        )
-        batch_op.create_unique_constraint(batch_op.f("users_email_key"), ["email"])
+            ))
+        batch_op.create_unique_constraint(batch_op.f("users_username_key"),
+                                          ["username"])
+        batch_op.create_unique_constraint(batch_op.f("users_email_key"),
+                                          ["email"])
         batch_op.alter_column(
             "password_hash",
             existing_type=sa.String(),

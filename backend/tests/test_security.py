@@ -4,9 +4,18 @@ import pytest
 @pytest.mark.parametrize(
     "payload",
     [
-        {"username": "' OR 1=1 --", "password": "teste"},
-        {"username": "user", "password": "<script>alert(1)</script>"},
-        {"title": "<img src=x onerror=alert(1)>", "date": "2025-09-01"},
+        {
+            "username": "' OR 1=1 --",
+            "password": "teste"
+        },
+        {
+            "username": "user",
+            "password": "<script>alert(1)</script>"
+        },
+        {
+            "title": "<img src=x onerror=alert(1)>",
+            "date": "2025-09-01"
+        },
     ],
 )
 def test_injection_protection(client, payload):

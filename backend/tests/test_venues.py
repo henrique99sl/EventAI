@@ -1,6 +1,7 @@
-def register_and_login(
-    client, username="venueuser", email="venueuser@gmail.com", password="StrongPass1"
-):
+def register_and_login(client,
+                       username="venueuser",
+                       email="venueuser@gmail.com",
+                       password="StrongPass1"):
     """Registra e faz login, retornando o token JWT."""
     client.post(
         "/users",
@@ -19,7 +20,10 @@ def test_create_venue(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "Auditório Central", "address": "Rua do Parque"},
+        json={
+            "name": "Auditório Central",
+            "address": "Rua do Parque"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 201
@@ -44,12 +48,18 @@ def test_get_venues(client):
     # Cria 2 venues
     client.post(
         "/venues",
-        json={"name": "A", "address": "Rua A"},
+        json={
+            "name": "A",
+            "address": "Rua A"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     client.post(
         "/venues",
-        json={"name": "B", "address": "Rua B"},
+        json={
+            "name": "B",
+            "address": "Rua B"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     resp = client.get("/venues")
@@ -63,7 +73,10 @@ def test_get_venue_by_id(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "Centro 1", "address": "Rua 1"},
+        json={
+            "name": "Centro 1",
+            "address": "Rua 1"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp.get_json()["id"]
@@ -76,7 +89,10 @@ def test_update_venue(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "Velho", "address": "Endereço antigo"},
+        json={
+            "name": "Velho",
+            "address": "Endereço antigo"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp.get_json()["id"]
@@ -84,7 +100,10 @@ def test_update_venue(client):
     # Atualiza
     resp2 = client.put(
         f"/venues/{venue_id}",
-        json={"name": "Novo Nome", "address": "Novo Endereço"},
+        json={
+            "name": "Novo Nome",
+            "address": "Novo Endereço"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp2.status_code == 200
@@ -97,13 +116,15 @@ def test_delete_venue(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "A Deletar", "address": "Rua"},
+        json={
+            "name": "A Deletar",
+            "address": "Rua"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp.get_json()["id"]
-    resp2 = client.delete(
-        f"/venues/{venue_id}", headers={"Authorization": f"Bearer {token}"}
-    )
+    resp2 = client.delete(f"/venues/{venue_id}",
+                          headers={"Authorization": f"Bearer {token}"})
     assert resp2.status_code == 200
     # Não encontra mais
     resp3 = client.get(f"/venues/{venue_id}")
@@ -114,7 +135,10 @@ def test_update_venue_invalid_id(client):
     token = register_and_login(client)
     resp = client.put(
         "/venues/9999",
-        json={"name": "Nao existe", "address": "Algum endereço"},
+        json={
+            "name": "Nao existe",
+            "address": "Algum endereço"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp.status_code == 404
@@ -122,7 +146,8 @@ def test_update_venue_invalid_id(client):
 
 def test_delete_venue_invalid_id(client):
     token = register_and_login(client)
-    resp = client.delete("/venues/9999", headers={"Authorization": f"Bearer {token}"})
+    resp = client.delete("/venues/9999",
+                         headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 404
 
 
@@ -140,13 +165,16 @@ def test_update_venue_missing_fields(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "Teste", "address": "Rua"},
+        json={
+            "name": "Teste",
+            "address": "Rua"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp.get_json()["id"]
-    resp2 = client.put(
-        f"/venues/{venue_id}", json={}, headers={"Authorization": f"Bearer {token}"}
-    )
+    resp2 = client.put(f"/venues/{venue_id}",
+                       json={},
+                       headers={"Authorization": f"Bearer {token}"})
     assert resp2.status_code == 400
 
 
@@ -154,7 +182,10 @@ def test_delete_venue_unauthenticated(client):
     token = register_and_login(client)
     resp = client.post(
         "/venues",
-        json={"name": "Para deletar", "address": "Rua"},
+        json={
+            "name": "Para deletar",
+            "address": "Rua"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp.get_json()["id"]

@@ -4,14 +4,12 @@ from app import create_app
 
 @pytest.fixture
 def client():
-    app = create_app(
-        {
-            "TESTING": True,
-            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-            "SECRET_KEY": "test",
-        }
-    )
+    app = create_app({
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+        "SECRET_KEY": "test",
+    })
     with app.test_client() as client:
         yield client
 

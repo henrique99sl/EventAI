@@ -23,11 +23,16 @@ class User(db.Model):
     def to_dict(self) -> dict:
         """Retorna um dicionário seguro (sem hash da senha) do usuário."""
         return {
-            "id": self.id,
-            "username": self.username,
-            "email": self.email,
-            "role": self.role,
-            "created_at": (self.created_at.isoformat() if self.created_at else None),
+            "id":
+            self.id,
+            "username":
+            self.username,
+            "email":
+            self.email,
+            "role":
+            self.role,
+            "created_at":
+            (self.created_at.isoformat() if self.created_at else None),
         }
 
     def __repr__(self):
@@ -36,11 +41,8 @@ class User(db.Model):
     def __eq__(self, other):
         if not isinstance(other, User):
             return False
-        return (
-            self.username == other.username
-            and self.email == other.email
-            and self.role == other.role
-        )
+        return (self.username == other.username and self.email == other.email
+                and self.role == other.role)
 
     def __hash__(self):
         return hash((self.username, self.email, self.role))

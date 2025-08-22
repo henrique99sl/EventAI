@@ -6,7 +6,8 @@ def test_login_with_expired_token(client, user_token, token_expiry):
     Testa se o endpoint /users/me retorna 401 quando o token está expirado.
     """
     time.sleep(token_expiry + 1)
-    resp = client.get("/users/me", headers={"Authorization": f"Bearer {user_token}"})
+    resp = client.get("/users/me",
+                      headers={"Authorization": f"Bearer {user_token}"})
     # Pode ser 401 ou 200 dependendo da lógica real do backend.
     assert resp.status_code in [
         200,
@@ -18,7 +19,8 @@ def test_login_with_malformed_token(client):
     """
     Testa se o endpoint /users/me retorna 401 para um token malformado.
     """
-    resp = client.get("/users/me", headers={"Authorization": "Bearer abc.def.ghi"})
+    resp = client.get("/users/me",
+                      headers={"Authorization": "Bearer abc.def.ghi"})
     assert resp.status_code == 401
 
 

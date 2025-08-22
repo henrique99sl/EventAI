@@ -1,9 +1,13 @@
-def register_and_login(
-    client, username="evuser", email="evuser@gmail.com", password="StrongPass1"
-):
-    client.post(
-        "/users", json={"username": username, "email": email, "password": password}
-    )
+def register_and_login(client,
+                       username="evuser",
+                       email="evuser@gmail.com",
+                       password="StrongPass1"):
+    client.post("/users",
+                json={
+                    "username": username,
+                    "email": email,
+                    "password": password
+                })
     login = client.post("/login", json={"email": email, "password": password})
     return login.get_json()["token"]
 
@@ -12,13 +16,20 @@ def test_create_and_filter_event(client):
     token = register_and_login(client)
     resp_venue = client.post(
         "/venues",
-        json={"name": "Local Teste", "address": "Rua X"},
+        json={
+            "name": "Local Teste",
+            "address": "Rua X"
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     venue_id = resp_venue.get_json()["id"]
     resp_event = client.post(
         "/events",
-        json={"name": "Festa", "date": "2025-09-01", "venue_id": venue_id},
+        json={
+            "name": "Festa",
+            "date": "2025-09-01",
+            "venue_id": venue_id
+        },
         headers={"Authorization": f"Bearer {token}"},
     )
     assert resp_event.status_code == 201
@@ -32,7 +43,8 @@ def test_create_and_filter_event(client):
 
 def test_delete_nonexistent_event(client):
     token = register_and_login(client)
-    resp = client.delete("/events/99999", headers={"Authorization": f"Bearer {token}"})
+    resp = client.delete("/events/99999",
+                         headers={"Authorization": f"Bearer {token}"})
     assert resp.status_code == 404
 
 
@@ -41,13 +53,20 @@ def test_update_event_without_permission(client):
     token1 = register_and_login(client, username="u1", email="u1@gmail.com")
     venue = client.post(
         "/venues",
-        json={"name": "v", "address": "a"},
+        json={
+            "name": "v",
+            "address": "a"
+        },
         headers={"Authorization": f"Bearer {token1}"},
     )
     venue_id = venue.get_json()["id"]
     event = client.post(
         "/events",
-        json={"name": "e", "date": "2025-10-10", "venue_id": venue_id},
+        json={
+            "name": "e",
+            "date": "2025-10-10",
+            "venue_id": venue_id
+        },
         headers={"Authorization": f"Bearer {token1}"},
     )
     event_id = event.get_json()["id"]
