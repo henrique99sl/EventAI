@@ -6,10 +6,7 @@ def test_calendar_returns_events_in_interval(client, user_token):
     # Cria venue
     resp_venue = client.post(
         "/venues",
-        json={
-            "name": "Test Venue",
-            "address": "Test Address"
-        },
+        json={"name": "Test Venue", "address": "Test Address"},
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]
@@ -24,7 +21,7 @@ def test_calendar_returns_events_in_interval(client, user_token):
             json={
                 "name": f"Event {i}",
                 "date": d.isoformat(),
-                "venue_id": venue_id
+                "venue_id": venue_id,
             },
             headers=headers,
         )
@@ -36,8 +33,7 @@ def test_calendar_returns_events_in_interval(client, user_token):
     start = today.isoformat()
     end = (today + timedelta(days=2)).isoformat()
     resp = client.get(
-        f"/events/calendar?start={start}&end={end}",
-        headers=headers
+        f"/events/calendar?start={start}&end={end}", headers=headers
     )
     assert resp.status_code == 200
     events = resp.get_json()
@@ -50,10 +46,7 @@ def test_calendar_excludes_events_outside_interval(client, user_token):
     # Cria venue e evento fora do intervalo
     resp_venue = client.post(
         "/venues",
-        json={
-            "name": "Another Venue",
-            "address": "Another Address"
-        },
+        json={"name": "Another Venue", "address": "Another Address"},
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]
@@ -86,10 +79,7 @@ def test_calendar_event_structure(client, user_token):
     # Cria venue e evento
     resp_venue = client.post(
         "/venues",
-        json={
-            "name": "Struct Venue",
-            "address": "Struct Address"
-        },
+        json={"name": "Struct Venue", "address": "Struct Address"},
         headers=headers,
     )
     venue_id = resp_venue.get_json()["id"]

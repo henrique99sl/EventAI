@@ -1,8 +1,6 @@
 import chromadb
 from chromadb.config import Settings
 import os
-# Use o mesmo diretório de persistência do seu backend (veja CHROMA_PERSIST_DIR)
-
 
 CHROMA_PERSIST_DIR = os.getenv("CHROMA_PERSIST_DIR", "chroma_db")
 
@@ -17,9 +15,10 @@ except Exception:
 
 # Adiciona documentos
 documents = [
-    "O próximo evento será no dia 30 de agosto de 2025, no Centro de Convenções.",
+    "O próximo evento será no dia 30 de agosto de 2025, "
+    "no Centro de Convenções.",
     "Para participar dos eventos, acesse a área de inscrições no site.",
-    "Os eventos são gratuitos para membros cadastrados."
+    "Os eventos são gratuitos para membros cadastrados.",
 ]
 metadatas = [
     {"origem": "agenda"},
@@ -28,6 +27,10 @@ metadatas = [
 ]
 ids = ["doc1", "doc2", "doc3"]
 
-collection.add(documents=documents, metadatas=metadatas, ids=ids)
+collection.add(
+    documents=documents,
+    metadatas=metadatas,
+    ids=ids
+)
 
 print("Coleção populada com sucesso!")

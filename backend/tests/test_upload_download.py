@@ -1,26 +1,20 @@
 import io
 import os
 
+
 def test_upload_image_to_event(client, user_token):
     # Garante que a pasta 'uploads' existe
     os.makedirs("uploads", exist_ok=True)
 
     # Cria venue e evento
     headers = {"Authorization": f"Bearer {user_token}"}
-    resp = client.post("/venues",
-                       json={
-                           "name": "V",
-                           "address": "A"
-                       },
-                       headers=headers)
+    resp = client.post(
+        "/venues", json={"name": "V", "address": "A"}, headers=headers
+    )
     venue_id = resp.get_json()["id"]
     resp2 = client.post(
         "/events",
-        json={
-            "name": "E",
-            "date": "2025-12-12",
-            "venue_id": venue_id
-        },
+        json={"name": "E", "date": "2025-12-12", "venue_id": venue_id},
         headers=headers,
     )
     event_id = resp2.get_json()["id"]
@@ -50,20 +44,13 @@ def test_upload_invalid_file_type(client, user_token):
     os.makedirs("uploads", exist_ok=True)
 
     headers = {"Authorization": f"Bearer {user_token}"}
-    resp = client.post("/venues",
-                       json={
-                           "name": "V",
-                           "address": "A"
-                       },
-                       headers=headers)
+    resp = client.post(
+        "/venues", json={"name": "V", "address": "A"}, headers=headers
+    )
     venue_id = resp.get_json()["id"]
     resp2 = client.post(
         "/events",
-        json={
-            "name": "E",
-            "date": "2025-12-12",
-            "venue_id": venue_id
-        },
+        json={"name": "E", "date": "2025-12-12", "venue_id": venue_id},
         headers=headers,
     )
     event_id = resp2.get_json()["id"]

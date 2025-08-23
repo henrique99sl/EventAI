@@ -9,14 +9,12 @@ def test_login_invalid_password(client):
         json={
             "username": "test",
             "email": "test@gmail.com",
-            "password": "StrongPass1"
+            "password": "StrongPass1",
         },
     )
-    resp = client.post("/login",
-                       json={
-                           "email": "test@gmail.com",
-                           "password": "errada"
-                       })
+    resp = client.post(
+        "/login", json={"email": "test@gmail.com", "password": "errada"}
+    )
     assert resp.status_code == 401
     assert "error" in resp.get_json()
 
@@ -27,8 +25,9 @@ def test_protected_route_without_token(client):
 
 
 def test_protected_route_with_invalid_token(client):
-    resp = client.get("/users/1",
-                      headers={"Authorization": "Bearer token_invalido"})
+    resp = client.get(
+        "/users/1", headers={"Authorization": "Bearer token_invalido"}
+    )
     assert resp.status_code == 401
 
 

@@ -13,13 +13,15 @@ from werkzeug.security import generate_password_hash
 @pytest.fixture(scope="session")
 def app():
     """Cria app Flask para testes com banco em memória e seed de admin."""
-    app = create_app({
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-        "SECRET_KEY": "test",
-        "JWT_SECRET_KEY": "jwt-secret",
-    })
+    app = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            "SECRET_KEY": "test",
+            "JWT_SECRET_KEY": "jwt-secret",
+        }
+    )
     with app.app_context():
         _db.create_all()
         admin = User(
@@ -88,11 +90,10 @@ def unique_username():
 @pytest.fixture
 def admin_token(client):
     """Retorna token do admin seed."""
-    login = client.post("/login",
-                        json={
-                            "email": "seed_admin@test.com",
-                            "password": "Admin1234"
-                        })
+    login = client.post(
+        "/login",
+        json={"email": "seed_admin@test.com", "password": "Admin1234"},
+    )
     assert login.status_code == 200, f"Admin login failed: {login.get_json()}"
     return login.get_json()["token"]
 
@@ -105,11 +106,7 @@ def user_token(client, unique_email, unique_username):
     password = "User1234"
     resp = client.post(
         "/users",
-        json={
-            "username": username,
-            "email": email,
-            "password": password
-        },
+        json={"username": username, "email": email, "password": password},
     )
     assert resp.status_code == 201, f"User creation failed: {resp.get_json()}"
     login = client.post("/login", json={"email": email, "password": password})
@@ -127,23 +124,17 @@ def make_user_token(client, unique_email, unique_username):
         password = "User1234"
         resp = client.post(
             "/users",
-            json={
-                "username": username,
-                "email": email,
-                "password": password
-            },
+            json={"username": username, "email": email, "password": password},
         )
-        assert resp.status_code == 201, (
-            f"User creation failed: {resp.get_json()}"
+        assert (
+            resp.status_code == 201
+        ), f"User creation failed: {resp.get_json()}"
+        login = client.post(
+            "/login", json={"email": email, "password": password}
         )
-        login = client.post("/login",
-                            json={
-                                "email": email,
-                                "password": password
-                            })
-        assert login.status_code == 200, (
-            f"User login failed: {login.get_json()}"
-        )
+        assert (
+            login.status_code == 200
+        ), f"User login failed: {login.get_json()}"
         return login.get_json()["token"]
 
     return _make
@@ -179,10 +170,12 @@ def venue(db):
 def event(db, venue):
     """Cria evento de exemplo associado ao venue e admin."""
     admin = User.query.filter_by(email="seed_admin@test.com").first()
-    e = Event(name="Evento Teste",
-              date=date(2025, 9, 1),
-              owner_id=admin.id,
-              venue_id=venue.id)
+    e = Event(
+        name="Evento Teste",
+        date=date(2025, 9, 1),
+        owner_id=admin.id,
+        venue_id=venue.id,
+    )
     db.session.add(e)
     db.session.commit()
     return e

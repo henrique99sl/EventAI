@@ -8,9 +8,9 @@ def test_update_user_details(client):
             "password": "SenhaOriginal1",
         },
     )
-    assert resp_user.status_code == 201, (
-        f"User creation failed: {resp_user.get_json()}"
-    )
+    assert (
+        resp_user.status_code == 201
+    ), f"User creation failed: {resp_user.get_json()}"
     resp_user.get_json().get("id")
 
     # Login para obter token
@@ -18,31 +18,29 @@ def test_update_user_details(client):
         "/login",
         json={
             "email": "testuserupdate@email.com",
-            "password": "SenhaOriginal1"
+            "password": "SenhaOriginal1",
         },
     )
-    assert resp_login.status_code == 200, (
-        f"Login failed: {resp_login.get_json()}"
-    )
+    assert (
+        resp_login.status_code == 200
+    ), f"Login failed: {resp_login.get_json()}"
     token = resp_login.get_json().get("token")
-    assert token, (
-        f"Token não encontrado: {resp_login.get_json()}"
-    )
+    assert token, f"Token não encontrado: {resp_login.get_json()}"
 
     # Atualiza email
     new_data = {"email": "novo@email.com"}
     resp = client.put(
         "/users/me",
         json=new_data,
-        headers={"Authorization": f"Bearer {token}"}
+        headers={"Authorization": f"Bearer {token}"},
     )
-    assert resp.status_code == 200, (
-        f"Falha ao atualizar usuário: {resp.get_json()}"
-    )
+    assert (
+        resp.status_code == 200
+    ), f"Falha ao atualizar usuário: {resp.get_json()}"
     data = resp.get_json()
-    assert data.get("email") == "novo@email.com", (
-        f"Email não atualizado: {data}"
-    )
+    assert (
+        data.get("email") == "novo@email.com"
+    ), f"Email não atualizado: {data}"
     # Se existir name no modelo (opcional)
     if "name" in data:
         resp = client.put(
@@ -52,9 +50,7 @@ def test_update_user_details(client):
         )
         assert resp.status_code == 200
         data = resp.get_json()
-        assert data.get("name") == "Novo Nome", (
-            f"Nome não atualizado: {data}"
-        )
+        assert data.get("name") == "Novo Nome", f"Nome não atualizado: {data}"
 
 
 def test_update_user_invalid_email(client):
@@ -72,7 +68,7 @@ def test_update_user_invalid_email(client):
         "/login",
         json={
             "email": "testuseremail@email.com",
-            "password": "SenhaOriginal1"
+            "password": "SenhaOriginal1",
         },
     )
     assert resp_login.status_code == 200
@@ -101,25 +97,22 @@ def test_change_password(client):
     assert resp_user.status_code == 201
     resp_login = client.post(
         "/login",
-        json={
-            "email": "testuserpass@email.com",
-            "password": "SenhaOriginal1"
-        }
+        json={"email": "testuserpass@email.com", "password": "SenhaOriginal1"},
     )
     assert resp_login.status_code == 200
     token = resp_login.get_json().get("token")
     data = {
         "old_password": "SenhaOriginal1",
-        "new_password": "NovaSenhaF0rte!"
+        "new_password": "NovaSenhaF0rte!",
     }
     resp = client.post(
         "/users/change-password",
         json=data,
         headers={"Authorization": f"Bearer {token}"},
     )
-    assert resp.status_code == 200, (
-        f"Falha ao trocar a senha: {resp.get_json()}"
-    )
+    assert (
+        resp.status_code == 200
+    ), f"Falha ao trocar a senha: {resp.get_json()}"
     resposta = resp.get_json()
     assert (
         "message" in resposta and "Senha alterada" in resposta["message"]
@@ -141,7 +134,7 @@ def test_change_password_weak(client):
         "/login",
         json={
             "email": "testuserweakpass@email.com",
-            "password": "SenhaOriginal1"
+            "password": "SenhaOriginal1",
         },
     )
     assert resp_login.status_code == 200

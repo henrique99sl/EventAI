@@ -3,7 +3,11 @@ from models import Event, Venue
 
 
 def get_next_event_response():
-    next_event = Event.query.filter(Event.date >= date.today()).order_by(Event.date.asc()).first()
+    next_event = (
+        Event.query.filter(Event.date >= date.today())
+        .order_by(Event.date.asc())
+        .first()
+    )
     if next_event:
         venue = Venue.query.get(next_event.venue_id)
         return (

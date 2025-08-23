@@ -1,7 +1,10 @@
 from transformers import pipeline
 
 # Carregar pipeline HuggingFace para sentimento
-sentiment_analyzer = pipeline("sentiment-analysis", model="distilbert-base-uncased-finetuned-sst-2-english")
+sentiment_analyzer = pipeline(
+    "sentiment-analysis",
+    model="distilbert-base-uncased-finetuned-sst-2-english",
+)
 
 
 def analyze_feedback(text):

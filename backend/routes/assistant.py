@@ -9,6 +9,7 @@ assistant_bp = Blueprint("assistant", __name__)
 def jwt_required_custom(f):
     # Usa o decorador customizado do app principal
     from app import jwt_required
+
     return jwt_required(f)
 
 

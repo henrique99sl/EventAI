@@ -21,17 +21,23 @@ def get_event_documents():
     Exemplo de retorno: lista de dicionários com id, título e texto.
     """
     return [
-        {"id": "faq-1", "title": "Horário do evento", "text": "O evento começa às 9h e termina às 18h."},
-        {"id": "faq-2", "title": "Localização", "text": "O evento será na Avenida Central, nº 100."},
+        {
+            "id": "faq-1",
+            "title": "Horário do evento",
+            "text": "O evento começa às 9h e termina às 18h.",
+        },
+        {
+            "id": "faq-2",
+            "title": "Localização",
+            "text": "O evento será na Avenida Central, nº 100.",
+        },
         # Adicione mais documentos do banco!
     ]
 
 
 def index_documents_in_chroma():
     # Inicializa o cliente ChromaDB
-    client = chromadb.Client(Settings(
-        persist_directory=CHROMA_PERSIST_DIR
-    ))
+    client = chromadb.Client(Settings(persist_directory=CHROMA_PERSIST_DIR))
     try:
         collection = client.get_collection(CHROMA_COLLECTION)
     except Exception:

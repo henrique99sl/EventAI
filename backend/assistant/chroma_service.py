@@ -39,7 +39,7 @@ def query_chroma(question, n_results=3):
     results = collection.query(
         query_embeddings=[query_embedding],
         n_results=n_results,
-        include=["documents", "metadatas"]  # Removido "ids"
+        include=["documents", "metadatas"],  # Removido "ids"
     )
 
     docs = results.get("documents", [[]])[0]
@@ -48,7 +48,9 @@ def query_chroma(question, n_results=3):
 
     resposta = "Resultados relevantes:\n"
     for i, doc in enumerate(docs):
-        titulo = metadatas[i].get('title') or metadatas[i].get('origem') or ids[i]
+        titulo = (
+            metadatas[i].get("title") or metadatas[i].get("origem") or ids[i]
+        )
         resposta += f"\nTítulo: {titulo}\nTrecho: {doc}\n"
     return resposta if docs else "Nenhum resultado relevante encontrado."
 

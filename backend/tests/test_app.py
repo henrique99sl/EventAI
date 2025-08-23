@@ -5,12 +5,14 @@ from app import create_app, db
 @pytest.fixture
 def client():
     # Cria a app com configuração de testing e banco SQLite em memória
-    app = create_app({
-        "TESTING": True,
-        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
-        "SQLALCHEMY_TRACK_MODIFICATIONS": False,
-        "SECRET_KEY": "test",  # define uma secret para JWT nos testes
-    })
+    app = create_app(
+        {
+            "TESTING": True,
+            "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
+            "SQLALCHEMY_TRACK_MODIFICATIONS": False,
+            "SECRET_KEY": "test",  # define uma secret para JWT nos testes
+        }
+    )
     with app.test_client() as client:
         with app.app_context():
             db.create_all()
@@ -54,11 +56,9 @@ def test_register_and_login(client):
     assert resp2.status_code == 400
 
     # Login com o usuário criado
-    resp3 = client.post("/login",
-                        json={
-                            "email": "test@gmail.com",
-                            "password": "StrongPass1"
-                        })
+    resp3 = client.post(
+        "/login", json={"email": "test@gmail.com", "password": "StrongPass1"}
+    )
     assert resp3.status_code == 200
     assert "token" in resp3.get_json()
 
@@ -69,7 +69,7 @@ def test_weak_password(client):
         json={
             "username": "weakuser",
             "email": "weakuser@gmail.com",
-            "password": "123"
+            "password": "123",
         },
     )
     assert resp.status_code == 400
@@ -82,7 +82,7 @@ def test_invalid_email(client):
         json={
             "username": "bademail",
             "email": "bademail",
-            "password": "StrongPass1"
+            "password": "StrongPass1",
         },
     )
     assert resp.status_code == 400
