@@ -17,3 +17,8 @@ sentry-sdk
 python-json-logger
 flask-caching
 pytest-mock
+langchain
+chromadb
+openai        
+sentence-transformers
+transformers 

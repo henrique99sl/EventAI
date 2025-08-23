@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request, g, send_file
 from dotenv import load_dotenv
 import os
 import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, date
 from werkzeug.security import generate_password_hash, check_password_hash
 from functools import wraps
 import re
@@ -16,14 +16,20 @@ from models.user import User
 from models.venue import Venue
 from models.event import Event
 from models.event_participation import EventParticipation
+from models.recommendation import Recommendation
+from models.feedback import Feedback
 
 import sentry_sdk
 from sentry_sdk.integrations.flask import FlaskIntegration
 from pythonjsonlogger import jsonlogger
 
+from models.chat_log import ChatLog
+from assistant.chroma_service import query_chroma
+from update_recommendations import calculate_and_save_recommendations
+from nlp_service import analyze_feedback
+
 try:
     from prometheus_flask_exporter import PrometheusMetrics
-
     PROMETHEUS_AVAILABLE = True
 except ImportError:
     PROMETHEUS_AVAILABLE = False
@@ -31,14 +37,13 @@ except ImportError:
 try:
     from flask_limiter import Limiter
     from flask_limiter.util import get_remote_address
-
     RATE_LIMITER_AVAILABLE = True
 except ImportError:
     RATE_LIMITER_AVAILABLE = False
 
 from flask_caching import Cache
 
-from notifications import send_event_created_email  # <-- IMPORTANTE
+from notifications import send_event_created_email
 
 
 def create_event_logic(name, date_obj, venue_id, owner_id):
@@ -62,17 +67,14 @@ def create_app(test_config=None):
         app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DATABASE_URL")
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "troque_essa_chave")
-    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY",
-                                             "troque_essa_tambem")
-    app.config["TESTING"] = test_config.get(
-        "TESTING") if test_config else False
+    app.config["JWT_SECRET_KEY"] = os.getenv("JWT_SECRET_KEY", "troque_essa_tambem")
+    app.config["TESTING"] = test_config.get("TESTING") if test_config else False
     CORS(app, origins=os.getenv("CORS_ORIGINS", "*").split(","))
 
     Swagger(app)
     db.init_app(app)
 
     from flask_migrate import Migrate
-
     Migrate(app, db)
 
     SENTRY_DSN = os.getenv("SENTRY_DSN")
@@ -111,8 +113,7 @@ def create_app(test_config=None):
         app,
         config={
             "CACHE_TYPE": "RedisCache",
-            "CACHE_REDIS_URL": os.getenv("REDIS_URL",
-                                         "redis://localhost:6379/0"),
+            "CACHE_REDIS_URL": os.getenv("REDIS_URL", "redis://localhost:6379/0"),
             "CACHE_DEFAULT_TIMEOUT": 300,
         },
     )
@@ -150,14 +151,10 @@ def create_app(test_config=None):
             query = query.filter(Event.date <= end)
         events = query.order_by(Event.date).all()
         result = [{
-            "id":
-            ev.id,
-            "name":
-            ev.name,
-            "date": (ev.date.isoformat()
-                     if hasattr(ev.date, "isoformat") else str(ev.date)),
-            "venue":
-            ev.venue_id,
+            "id": ev.id,
+            "name": ev.name,
+            "date": (ev.date.isoformat() if hasattr(ev.date, "isoformat") else str(ev.date)),
+            "venue": ev.venue_id,
         } for ev in events]
         return jsonify(result), 200
 
@@ -166,19 +163,17 @@ def create_app(test_config=None):
     def cached_events():
         query = Event.query
         name = request.args.get("name")
-        date = request.args.get("date")
+        date_str = request.args.get("date")
         venue_id = request.args.get("venue_id")
         if name:
             query = query.filter(Event.name.ilike(f"%{name}%"))
-        if date:
+        if date_str:
             try:
-                datetime.strptime(date, "%Y-%m-%d")
-                query = query.filter(Event.date == date)
+                datetime.strptime(date_str, "%Y-%m-%d")
+                query = query.filter(Event.date == date_str)
             except ValueError:
                 return (
-                    jsonify(
-                        {"error":
-                         "Formato de data inválido. Use YYYY-MM-DD."}),
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
                     400,
                 )
         if venue_id:
@@ -188,21 +183,17 @@ def create_app(test_config=None):
 
     # Helpers internos
     def jwt_required(f):
-
         @wraps(f)
         def decorated(*args, **kwargs):
             auth_header = request.headers.get("Authorization", None)
             if not auth_header or not auth_header.startswith("Bearer "):
                 return (
-                    jsonify(
-                        {"error": "Missing or invalid Authorization header"}),
+                    jsonify({"error": "Missing or invalid Authorization header"}),
                     401,
                 )
             token = auth_header.split(" ")[1]
             try:
-                payload = jwt.decode(token,
-                                     app.config["JWT_SECRET_KEY"],
-                                     algorithms=["HS256"])
+                payload = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
             except jwt.ExpiredSignatureError:
                 return jsonify({"error": "Token expired"}), 401
             except jwt.InvalidTokenError:
@@ -212,19 +203,15 @@ def create_app(test_config=None):
                 return jsonify({"error": "User not found"}), 401
             g.current_user = user
             return f(*args, **kwargs)
-
         return decorated
 
     def admin_required(f):
-
         @wraps(f)
         def decorated(*args, **kwargs):
             user = g.current_user
             if user.role != "admin":
-                return jsonify({"error":
-                                "Acesso restrito a administradores"}), 403
+                return jsonify({"error": "Acesso restrito a administradores"}), 403
             return f(*args, **kwargs)
-
         return decorated
 
     def is_strong_password(password):
@@ -235,6 +222,33 @@ def create_app(test_config=None):
     @app.route("/")
     def status():
         return jsonify({"status": "ok"})
+
+    # --- ENDPOINT DE RECOMENDAÇÕES ---
+    @app.route("/recommendations/update", methods=["POST"])
+    @jwt_required
+    @admin_required
+    def update_recommendations_admin():
+        try:
+            calculate_and_save_recommendations()
+            return jsonify({"message": "Recomendações atualizadas para todos os usuários."}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
+    @app.route("/recommendations", methods=["GET"])
+    @jwt_required
+    def get_recommendations():
+        user_id = g.current_user.id
+        recs = Recommendation.query.filter_by(user_id=user_id).order_by(Recommendation.score.desc()).limit(5).all()
+        output = []
+        for r in recs:
+            event = Event.query.get(r.event_id)
+            venue = Venue.query.get(event.venue_id) if event else None
+            output.append({
+                "event": event.to_dict() if event else None,
+                "venue": venue.to_dict() if venue else None,
+                "score": r.score
+            })
+        return jsonify(output)
 
     # USERS
     @app.route("/users", methods=["GET"])
@@ -267,8 +281,7 @@ def create_app(test_config=None):
 
         if not username or not email or not password:
             return (
-                jsonify(
-                    {"error": "Username, email e password são obrigatórios"}),
+                jsonify({"error": "Username, email e password são obrigatórios"}),
                 400,
             )
 
@@ -299,49 +312,34 @@ def create_app(test_config=None):
             if not admin_header or not admin_header.startswith("Bearer "):
                 return (
                     jsonify({
-                        "error":
-                        "Apenas administradores podem criar "
-                        "outros administradores"
+                        "error": "Apenas administradores podem criar outros administradores"
                     }),
                     403,
                 )
             token = admin_header.split(" ")[1]
             try:
-                payload = jwt.decode(token,
-                                     app.config["JWT_SECRET_KEY"],
-                                     algorithms=["HS256"])
+                payload = jwt.decode(token, app.config["JWT_SECRET_KEY"], algorithms=["HS256"])
                 admin_user = User.query.get(payload["user_id"])
                 if not admin_user or admin_user.role != "admin":
                     return (
                         jsonify({
-                            "error":
-                            "Apenas administradores "
-                            "podem criar outros administradores"
+                            "error": "Apenas administradores podem criar outros administradores"
                         }),
                         403,
                     )
             except Exception:
                 return (
                     jsonify({
-                        "error":
-                        "Apenas administradores podem "
-                        "criar outros administradores"
+                        "error": "Apenas administradores podem criar outros administradores"
                     }),
                     403,
                 )
 
         password_hash = generate_password_hash(password)
-        user = User(username=username,
-                    email=email,
-                    password_hash=password_hash,
-                    role=role)
+        user = User(username=username, email=email, password_hash=password_hash, role=role)
         db.session.add(user)
         db.session.commit()
-        app.logger.info("Novo usuário criado",
-                        extra={
-                            "user_id": user.id,
-                            "role": user.role
-                        })
+        app.logger.info("Novo usuário criado", extra={"user_id": user.id, "role": user.role})
         return jsonify(user.to_dict()), 201
 
     @app.route("/users/<int:user_id>", methods=["PUT", "PATCH"])
@@ -352,8 +350,7 @@ def create_app(test_config=None):
             return jsonify({"error": "Usuário não encontrado"}), 404
         data = request.json
         if "username" in data:
-            existing_username = User.query.filter_by(
-                username=data["username"]).first()
+            existing_username = User.query.filter_by(username=data["username"]).first()
             if existing_username and existing_username.id != user.id:
                 return jsonify({"error": "Username já cadastrado"}), 400
             user.username = data["username"]
@@ -379,7 +376,6 @@ def create_app(test_config=None):
         user = User.query.get(user_id)
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
-        # Delete participações e eventos do usuário antes de deletar
         EventParticipation.query.filter_by(user_id=user_id).delete()
         Event.query.filter_by(owner_id=user_id).delete()
         db.session.delete(user)
@@ -396,13 +392,10 @@ def create_app(test_config=None):
         user = User.query.filter_by(email=email).first()
         if not user:
             return jsonify({"error": "Usuário não encontrado"}), 404
-        # Aqui seria enviado o email de recuperação (mocked para testes)
-        # Gera um token de reset fake para testes
         reset_token = email[::-1]  # exemplo: token é o email invertido
         return (
             jsonify({
-                "message":
-                "Se o email existir, foi enviado um link de recuperação",
+                "message": "Se o email existir, foi enviado um link de recuperação",
                 "reset_token": reset_token,
             }),
             200,
@@ -415,7 +408,6 @@ def create_app(test_config=None):
         new_password = data.get("new_password")
         if not token or not new_password:
             return jsonify({"error": "Campos obrigatórios"}), 400
-        # Para teste, recupera o email invertendo o token
         email = token[::-1]
         user = User.query.filter_by(email=email).first()
         if not user:
@@ -432,8 +424,7 @@ def create_app(test_config=None):
         user = g.current_user
         data = request.json
         if "username" in data:
-            existing_username = User.query.filter_by(
-                username=data["username"]).first()
+            existing_username = User.query.filter_by(username=data["username"]).first()
             if existing_username and existing_username.id != user.id:
                 return jsonify({"error": "Username já cadastrado"}), 400
             user.username = data["username"]
@@ -469,12 +460,10 @@ def create_app(test_config=None):
         db.session.commit()
         return jsonify({"message": "Senha alterada com sucesso"}), 200
 
-    # LOGIN & AUTH
     @app.route("/login", methods=["POST"])
     def login():
         if limiter:
-            limit_decorator = limiter.shared_limit("5 per minute",
-                                                   scope="login")
+            limit_decorator = limiter.shared_limit("5 per minute", scope="login")
             return limit_decorator(_login)()
         return _login()
 
@@ -482,7 +471,7 @@ def create_app(test_config=None):
         data = request.json
         email = data.get("email")
         password = data.get("password")
-        expires_in = data.get("expires_in")  # <--- ADICIONADO PARA TESTES
+        expires_in = data.get("expires_in")
 
         if not email or not password:
             return jsonify({"error": "Email and password required"}), 400
@@ -494,15 +483,12 @@ def create_app(test_config=None):
         exp_time = (datetime.utcnow() + timedelta(seconds=expires_in)
                     if expires_in else datetime.utcnow() + timedelta(hours=2))
         payload = {"user_id": user.id, "exp": exp_time}
-        token = jwt.encode(payload,
-                           app.config["JWT_SECRET_KEY"],
-                           algorithm="HS256")
+        token = jwt.encode(payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
         if isinstance(token, bytes):
             token = token.decode("utf-8")
         app.logger.info("Login realizado", extra={"user_id": user.id})
         return jsonify({"token": token, "user": user.to_dict()})
 
-    # /me e /users/me para compatibilidade com testes/REST
     @app.route("/me", methods=["GET"])
     @jwt_required
     def get_me():
@@ -513,7 +499,6 @@ def create_app(test_config=None):
     def get_me_alias():
         return jsonify(g.current_user.to_dict())
 
-    # Dummy refresh token endpoint para testes
     @app.route("/auth/refresh", methods=["POST"])
     def refresh_token():
         data = request.json
@@ -523,16 +508,13 @@ def create_app(test_config=None):
                 "user_id": 1,
                 "exp": datetime.utcnow() + timedelta(hours=2)
             }
-            token = jwt.encode(payload,
-                               app.config["JWT_SECRET_KEY"],
-                               algorithm="HS256")
+            token = jwt.encode(payload, app.config["JWT_SECRET_KEY"], algorithm="HS256")
             if isinstance(token, bytes):
                 token = token.decode("utf-8")
             return jsonify({"token": token}), 200
         else:
             return jsonify({"error": "Refresh token inválido"}), 401
 
-    # VENUES
     @app.route("/venues", methods=["GET"])
     def get_venues():
         venues = Venue.query.all()
@@ -567,8 +549,7 @@ def create_app(test_config=None):
             return jsonify({"error": "Venue não encontrado"}), 404
         data = request.json or {}
         if "name" not in data or "address" not in data:
-            return jsonify({"error":
-                            "Campos obrigatórios não fornecidos"}), 400
+            return jsonify({"error": "Campos obrigatórios não fornecidos"}), 400
         venue.name = data["name"]
         venue.address = data["address"]
         db.session.commit()
@@ -586,27 +567,24 @@ def create_app(test_config=None):
         app.logger.info("Venue deletado", extra={"venue_id": venue_id})
         return jsonify({"message": "Venue deletado"}), 200
 
-    # EVENTS
     @app.route("/events", methods=["GET"])
     def get_events():
         query = Event.query
         name = request.args.get("name")
-        date = request.args.get("date")
+        date_str = request.args.get("date")
         venue_id = request.args.get("venue_id")
         creator_id = request.args.get("creator_id")
         limit = request.args.get("limit", type=int)
         offset = request.args.get("offset", type=int)
         if name:
             query = query.filter(Event.name.ilike(f"%{name}%"))
-        if date:
+        if date_str:
             try:
-                datetime.strptime(date, "%Y-%m-%d")
-                query = query.filter(Event.date == date)
+                datetime.strptime(date_str, "%Y-%m-%d")
+                query = query.filter(Event.date == date_str)
             except ValueError:
                 return (
-                    jsonify(
-                        {"error":
-                         "Formato de data inválido. Use YYYY-MM-DD."}),
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
                     400,
                 )
         if venue_id:
@@ -635,18 +613,15 @@ def create_app(test_config=None):
         date_str = data.get("date")
         venue_id = data.get("venue_id")
         if not name or not date_str or not venue_id:
-            return jsonify({"error":
-                            "Nome, data e venue_id são obrigatórios"}), 400
+            return jsonify({"error": "Nome, data e venue_id são obrigatórios"}), 400
         try:
             date_obj = datetime.strptime(date_str, "%Y-%m-%d").date()
         except ValueError:
-            return jsonify(
-                {"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
+            return jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}), 400
         if not Venue.query.get(venue_id):
             return jsonify({"error": "Venue inexistente"}), 400
         try:
-            event = create_event_logic(name, date_obj, venue_id,
-                                       g.current_user.id)
+            event = create_event_logic(name, date_obj, venue_id, g.current_user.id)
         except Exception as e:
             db.session.rollback()
             app.logger.warning(f"Falha ao criar evento: {e}")
@@ -655,11 +630,14 @@ def create_app(test_config=None):
             send_event_created_email(event)
         except Exception as e:
             app.logger.warning(f"Falha ao enviar email: {e}")
-        app.logger.info("Evento criado",
-                        extra={
-                            "event_id": event.id,
-                            "user_id": g.current_user.id
-                        })
+
+        # ATUALIZA RECOMENDAÇÕES
+        try:
+            calculate_and_save_recommendations()
+        except Exception as e:
+            app.logger.warning(f"Falha ao atualizar recomendações: {e}")
+
+        app.logger.info("Evento criado", extra={"event_id": event.id, "user_id": g.current_user.id})
         return jsonify(event.to_dict()), 201
 
     @app.route("/events/<int:event_id>", methods=["PUT", "PATCH"])
@@ -668,8 +646,7 @@ def create_app(test_config=None):
         event = Event.query.get(event_id)
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
-        if (hasattr(event, "owner_id") and event.owner_id != g.current_user.id
-                and g.current_user.role != "admin"):
+        if (hasattr(event, "owner_id") and event.owner_id != g.current_user.id and g.current_user.role != "admin"):
             return jsonify({"error": "Sem permissão"}), 403
         data = request.json or {}
         if "name" in data:
@@ -680,9 +657,7 @@ def create_app(test_config=None):
                 event.date = date_obj
             except ValueError:
                 return (
-                    jsonify(
-                        {"error":
-                         "Formato de data inválido. Use YYYY-MM-DD."}),
+                    jsonify({"error": "Formato de data inválido. Use YYYY-MM-DD."}),
                     400,
                 )
         if "venue_id" in data:
@@ -690,13 +665,7 @@ def create_app(test_config=None):
                 return jsonify({"error": "Venue inexistente"}), 400
             event.venue_id = data["venue_id"]
         db.session.commit()
-        app.logger.info(
-            "Evento atualizado",
-            extra={
-                "event_id": event.id,
-                "user_id": g.current_user.id
-            },
-        )
+        app.logger.info("Evento atualizado", extra={"event_id": event.id, "user_id": g.current_user.id})
         return jsonify(event.to_dict())
 
     @app.route("/events/<int:event_id>", methods=["DELETE"])
@@ -705,21 +674,13 @@ def create_app(test_config=None):
         event = Event.query.get(event_id)
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
-        if (hasattr(event, "owner_id") and event.owner_id != g.current_user.id
-                and g.current_user.role != "admin"):
+        if (hasattr(event, "owner_id") and event.owner_id != g.current_user.id and g.current_user.role != "admin"):
             return jsonify({"error": "Sem permissão"}), 403
         db.session.delete(event)
         db.session.commit()
-        app.logger.info(
-            "Evento deletado",
-            extra={
-                "event_id": event_id,
-                "user_id": g.current_user.id
-            },
-        )
+        app.logger.info("Evento deletado", extra={"event_id": event_id, "user_id": g.current_user.id})
         return jsonify({"message": "Evento deletado"}), 200
 
-    # ------ PARTICIPAÇÃO EM EVENTOS ------
     @app.route("/events/<int:event_id>/participate", methods=["POST"])
     @jwt_required
     def participate_in_event(event_id):
@@ -727,13 +688,19 @@ def create_app(test_config=None):
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
         user_id = g.current_user.id
-        participation = EventParticipation.query.filter_by(
-            user_id=user_id, event_id=event_id).first()
+        participation = EventParticipation.query.filter_by(user_id=user_id, event_id=event_id).first()
         if participation:
             return jsonify({"error": "Usuário já participa"}), 400
         participation = EventParticipation(user_id=user_id, event_id=event_id)
         db.session.add(participation)
         db.session.commit()
+
+        # ATUALIZA RECOMENDAÇÕES
+        try:
+            calculate_and_save_recommendations()
+        except Exception as e:
+            app.logger.warning(f"Falha ao atualizar recomendações: {e}")
+
         return jsonify({"message": "Participação confirmada"}), 200
 
     @app.route("/events/<int:event_id>/cancel", methods=["POST"])
@@ -743,15 +710,13 @@ def create_app(test_config=None):
         if not event:
             return jsonify({"error": "Evento não encontrado"}), 404
         user_id = g.current_user.id
-        participation = EventParticipation.query.filter_by(
-            user_id=user_id, event_id=event_id).first()
+        participation = EventParticipation.query.filter_by(user_id=user_id, event_id=event_id).first()
         if not participation:
             return jsonify({"error": "Usuário não está participando"}), 400
         db.session.delete(participation)
         db.session.commit()
         return jsonify({"message": "Participação cancelada"}), 200
 
-    # ------ UPLOAD DE IMAGEM DE EVENTO ------
     @app.route("/events/<int:event_id>/upload", methods=["POST"])
     @jwt_required
     def upload_event_image(event_id):
@@ -761,7 +726,6 @@ def create_app(test_config=None):
         if "file" not in request.files:
             return jsonify({"error": "Nenhum arquivo enviado"}), 400
         file = request.files["file"]
-        # Aceite só PNG/JPG/JPEG
         if not (file.filename.lower().endswith(".png")
                 or file.filename.lower().endswith(".jpg")
                 or file.filename.lower().endswith(".jpeg")):
@@ -772,12 +736,8 @@ def create_app(test_config=None):
         file.save(filepath)
         event.image_filename = filename
         db.session.commit()
-        return jsonify({
-            "message": "Imagem enviada",
-            "filename": filename
-        }), 201
+        return jsonify({"message": "Imagem enviada", "filename": filename}), 201
 
-    # ------ DOWNLOAD DE IMAGEM DE EVENTO ------
     @app.route("/events/<int:event_id>/image", methods=["GET"])
     @jwt_required
     def download_event_image(event_id):
@@ -791,6 +751,58 @@ def create_app(test_config=None):
         if not os.path.exists(filepath):
             return jsonify({"error": "Imagem não encontrada"}), 404
         return send_file(filepath, mimetype="image/png")
+
+    @app.route("/assistant", methods=["POST"])
+    @jwt_required
+    def assistant_virtual():
+        user_id = g.current_user.id if hasattr(g, "current_user") else None
+        data = request.get_json()
+        question = data.get("question")
+        if not question:
+            return jsonify({"error": "Campo 'question' é obrigatório"}), 400
+
+        # Fallback para perguntas sobre eventos
+        if "próximo evento" in question.lower():
+            next_event = Event.query.filter(Event.date >= date.today()).order_by(Event.date.asc()).first()
+            if next_event:
+                venue = Venue.query.get(next_event.venue_id)
+                answer = (
+                    f"O próximo evento é '{next_event.name}' em "
+                    f"{venue.name if venue else 'local desconhecido'} "
+                    f"no dia {next_event.date.strftime('%d/%m/%Y')}."
+                )
+            else:
+                answer = "Nenhum evento futuro encontrado."
+        else:
+            answer = query_chroma(question)
+
+        log = ChatLog(user_id=user_id, question=question, answer=answer)
+        db.session.add(log)
+        db.session.commit()
+
+        return jsonify({"answer": answer})
+
+    @app.route("/feedback", methods=["POST"])
+    @jwt_required
+    def submit_feedback():
+        data = request.json
+        text = data.get("text")
+        if not text:
+            return jsonify({"error": "Texto de feedback obrigatório"}), 400
+        sentiment, topics = analyze_feedback(text)
+        feedback = Feedback(
+            user_id=getattr(g.current_user, "id", None),
+            text=text,
+            sentiment=sentiment,
+            topics=topics
+        )
+        db.session.add(feedback)
+        db.session.commit()
+        return jsonify({
+            "message": "Feedback registrado",
+            "sentiment": sentiment,
+            "topics": topics
+        }), 201
 
     return app
 

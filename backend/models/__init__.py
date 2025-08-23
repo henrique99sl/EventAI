@@ -2,7 +2,6 @@ from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
-# Só importa os modelos se fores usá-los diretamente aqui
+# Importe os modelos APÓS criar o db para evitar circularidade
 # from .venue import Venue
-# from .user import User
 # from .event import Event

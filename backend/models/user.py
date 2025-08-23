@@ -13,26 +13,18 @@ class User(db.Model):
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
 
     def set_password(self, password: str) -> None:
-        """Gera o hash da senha para este usuário."""
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password: str) -> bool:
-        """Verifica se a senha fornecida bate com o hash."""
         return check_password_hash(self.password_hash, password)
 
     def to_dict(self) -> dict:
-        """Retorna um dicionário seguro (sem hash da senha) do usuário."""
         return {
-            "id":
-            self.id,
-            "username":
-            self.username,
-            "email":
-            self.email,
-            "role":
-            self.role,
-            "created_at":
-            (self.created_at.isoformat() if self.created_at else None),
+            "id": self.id,
+            "username": self.username,
+            "email": self.email,
+            "role": self.role,
+            "created_at": (self.created_at.isoformat() if self.created_at else None),
         }
 
     def __repr__(self):

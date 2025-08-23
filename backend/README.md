@@ -2,22 +2,85 @@
 
 # EventAI Backend
 
-Este é o backend do **EventAI**, uma API RESTful em Flask para gerir utilizadores, eventos e locais (venues), com autenticação JWT, permissões de admin, documentação Swagger, testes automatizados, backup automatizado, pronto para Docker, CI/CD e **Kubernetes**.
+Este é o backend do **EventAI**, uma API RESTful construída em Flask para gestão de utilizadores, eventos, recomendações, feedbacks e integração com IA e ML (LangChain, ChromaDB, OpenAI, transformers). Pronto para produção (Docker, CI/CD, AWS, Kubernetes) e com documentação interativa.
 
 ---
 
-## 🚀 Funcionalidades
+## 🚀 Funcionalidades Principais
 
 - **Gestão de Utilizadores:** CRUD, autenticação JWT, roles, segurança de senha
-- **Gestão de Eventos:** CRUD, filtros por nome/data/venue
-- **Gestão de Locais (Venues):** CRUD completo
-- **Permissões:** Apenas admin pode apagar utilizadores e criar outros admins
-- **Documentação interativa Swagger/OpenAPI**
+- **Gestão de Eventos e Locais (Venues):** CRUD completo, filtros avançados
+- **Permissões avançadas:** Apenas admin pode apagar utilizadores e criar outros admins
+- **Documentação Swagger/OpenAPI**
 - **Testes automatizados (Pytest + Coverage)**
 - **Backup automatizado do banco de dados**
 - **Pronto para CI/CD (GitHub Actions + AWS)**
-- **Docker e Docker Compose prontos para produção/dev**
-- **Pronto para Kubernetes (manifests na pasta `k8s/` e exemplos abaixo)**
+- **Docker e Docker Compose para produção/dev**
+- **Kubernetes (manifests na pasta `kubernetes/`)**
+- **Monitoramento e alertas (Prometheus, YAML de alertas, Loki, dashboards)**
+- **Integração ML/AI:** LangChain, ChromaDB, OpenAI, transformers, sentence-transformers
+- **Assistente IA embutido:** Responde perguntas, faz busca semântica, recomenda eventos
+- **Sistema de Recomendações Personalizadas:** Embeddings, histórico, feedback
+- **Feedback dos usuários:** CRUD de feedback, análise de satisfação
+
+---
+
+## 🧠 Funcionalidades Avançadas: Assistant, Recomendações e Feedback
+
+### Assistant (IA)
+
+- **Interação via endpoint:** `/assistant`
+- **Funcionalidades:**  
+  - Responde dúvidas sobre eventos, locais, usuários e funcionamento da plataforma
+  - Busca semântica via embeddings e ChromaDB
+  - Gera recomendações de eventos personalizadas
+  - Integração com modelos OpenAI, LangChain, transformers, sentence-transformers
+- **Exemplo de request:**
+  ```bash
+  curl -X POST http://localhost:8000/assistant \
+    -H "Content-Type: application/json" \
+    -d '{"question":"Quais eventos recomendados para mim esta semana?"}'
+  ```
+- **Configuração de persistência:**  
+  - Diretório: `CHROMA_PERSIST_DIR`
+  - Coleção: `CHROMA_COLLECTION`
+  - Modelo: `EMBEDDING_MODEL`
+
+---
+
+### Recomendações
+
+- **Endpoint principal:** `/recommendations`
+- **Funcionalidades:**  
+  - Sugere eventos com base no perfil, histórico e feedback do usuário
+  - Utiliza embeddings, ChromaDB e ML para personalizar sugestões
+  - Pode ser integrado a workflows de onboarding ou notificações
+- **Exemplo de request:**
+  ```bash
+  curl -X GET http://localhost:8000/recommendations \
+    -H "Authorization: Bearer SEU_TOKEN_JWT"
+  ```
+- **Scripts e pipelines:**  
+  - `assistant/embedding_pipeline.py`
+  - `assistant/chroma_service.py`
+  - `update_recommendations.py`
+
+---
+
+### Feedback
+
+- **Endpoint:** `/feedback`
+- **Funcionalidades:**  
+  - Usuários podem enviar feedback sobre eventos, recomendações, assistente e plataforma
+  - Feedback é associado ao usuário e pode ser analisado para melhorias
+  - Admin pode visualizar, filtrar e exportar feedbacks
+- **Exemplo de request:**
+  ```bash
+  curl -X POST http://localhost:8000/feedback \
+    -H "Authorization: Bearer SEU_TOKEN_JWT" \
+    -H "Content-Type: application/json" \
+    -d '{"event_id":1, "rating":5, "comment":"Evento excelente!"}'
+  ```
 
 ---
 
@@ -30,59 +93,63 @@ cp .env.example .env
 docker-compose up --build
 ```
 
-- O backend estará em [http://localhost:8000](http://localhost:8000)
-- O Adminer (gestor de base de dados) em [http://localhost:8080](http://localhost:8080)
-- A documentação Swagger em [http://localhost:8000/apidocs](http://localhost:8000/apidocs)
+- Backend: [http://localhost:8000](http://localhost:8000)
+- Adminer (DB GUI): [http://localhost:8080](http://localhost:8080)
+- Swagger: [http://localhost:8000/apidocs](http://localhost:8000/apidocs)
 
-### Variáveis de ambiente `.env` (exemplo)
+---
 
+## 🧬 Integração ML/AI
+
+Dependências instaladas para IA/ML:
+- `langchain`
+- `chromadb`
+- `openai`
+- `sentence-transformers`
+- `transformers`
+
+Exemplo de variáveis no `.env`:
 ```env
-DATABASE_URL=postgresql://eventos_user:eventos_pass@db:5432/eventos_db
-SECRET_KEY=minha_chave_ultra_secreta
+CHROMA_PERSIST_DIR=chroma_db
+CHROMA_COLLECTION=eventai_docs
+EMBEDDING_MODEL=all-MiniLM-L6-v2
+OPENAI_API_KEY=sua_openai_api_key_aqui
 ```
+
+Utilize scripts como `populate_chroma.py` para inicializar embeddings e persistência.
 
 ---
 
 ## ☸️ Deploy com Kubernetes
 
-> **Pré-requesito:** Ter um cluster Kubernetes (ex: minikube, kind, GKE, EKS, etc) e `kubectl`.
-
-- Os manifests de deployment e serviço estão na pasta `k8s/`
-
+Manifests na pasta `kubernetes/`:
 ```bash
-kubectl apply -f k8s/postgres-deployment.yaml
-kubectl apply -f k8s/backend-deployment.yaml
-kubectl apply -f k8s/adminer-deployment.yaml
+kubectl apply -f kubernetes/postgres-deployment.yaml
+kubectl apply -f kubernetes/backend-deployment.yaml
+kubectl apply -f kubernetes/backend-ingress.yaml
 ```
 
-- Exponha o backend e o Adminer com NodePort, LoadBalancer ou Ingress conforme o ambiente.
-- Recomenda-se configurar o banco com PVC (PersistentVolumeClaim) para dados e backups.
-
-> **Dica:** Adapte os manifests para apontar para os teus secrets e configurações.
+- Recomenda-se PVC para dados e backups.
+- Adapte configs para seus secrets e ambiente.
 
 ---
 
 ## 🗄️ Backup e Restore do Banco de Dados
 
-- **Backup manual:**  
-  ```bash
-  docker-compose exec backend bash scripts/backup_db.sh
-  ```
-  O backup `.sql` será salvo em `./backups` (pasta do host, mapeada no container).
+### Backup manual (docker):
+```bash
+docker-compose exec backend bash scripts/backup_db.sh
+```
+Backup `.sql` salvo em `./backups`.
 
-- **Backup automático:**  
-  Agende via cron fora do container, ou crie um Job/CronJob no Kubernetes para rodar `scripts/backup_db.sh`.
+### Restore manual:
+```bash
+docker-compose exec db bash
+psql -U eventos_user -d eventos_db -f /var/lib/postgresql/data/seubackup.sql
+```
 
-- **Restore manual:**  
-  ```bash
-  # copie o arquivo para o container do banco ou volume compartilhado
-  docker-compose exec db bash
-  psql -U eventos_user -d eventos_db -f /var/lib/postgresql/data/teubackup.sql
-  ```
-  *(Ajuste o caminho conforme onde o backup está disponível no container)*
-
-- **Em produção/Kubernetes:**  
-  Use Jobs/CronJobs para backups e restores, sempre garantindo que os arquivos estejam disponíveis nos volumes corretos.
+### Backup/restore automático:
+Agende via cron, ou use Job/CronJob no Kubernetes.
 
 ---
 
@@ -96,7 +163,7 @@ cp .env.example .env
 flask db upgrade
 flask run
 ```
-API disponível em `http://localhost:5000/`
+API: [http://localhost:5000](http://localhost:5000)
 
 ---
 
@@ -104,17 +171,9 @@ API disponível em `http://localhost:5000/`
 
 ```bash
 pytest
-# ou com coverage
 pytest --cov=.
 ```
-
----
-
-## 🔐 Autenticação & Fluxo de Admin
-
-- Para criar utilizador/admin, enviar role no JSON. Criar admin exige token JWT de admin.
-- Apenas admins podem criar outros admins e apagar utilizadores.
-- O primeiro admin pode ser criado manualmente na base de dados, via migration ou script.
+Cobertura para rotas, autenticação, IA, feedback, recomendações, backup/restore.
 
 ---
 
@@ -126,7 +185,7 @@ pytest --cov=.
 |--------|------------------|-------------------------|----------------|
 | GET    | /users           | Listar utilizadores     | Livre          |
 | POST   | /users           | Criar utilizador        | Livre/Admin    |
-| GET    | /users/&lt;id&gt;| Ver detalhes            | JWT            |
+| GET    | /users/&lt;id&gt;| Detalhes do usuário     | JWT            |
 | PUT    | /users/&lt;id&gt;| Editar utilizador       | JWT            |
 | DELETE | /users/&lt;id&gt;| Apagar utilizador       | Admin/JWT      |
 
@@ -143,7 +202,7 @@ pytest --cov=.
 |--------|------------------|-----------------------|------------|
 | GET    | /events          | Listar/filtros        | Livre      |
 | POST   | /events          | Criar evento          | JWT        |
-| GET    | /events/&lt;id&gt;| Ver detalhes         | Livre      |
+| GET    | /events/&lt;id&gt;| Detalhes do evento   | Livre      |
 | PUT    | /events/&lt;id&gt;| Editar evento        | JWT        |
 | DELETE | /events/&lt;id&gt;| Apagar evento        | JWT        |
 
@@ -153,75 +212,108 @@ pytest --cov=.
 |--------|------------------|-----------------------|------------|
 | GET    | /venues          | Listar/filtros        | Livre      |
 | POST   | /venues          | Criar venue           | JWT        |
-| GET    | /venues/&lt;id&gt;| Ver detalhes        | Livre      |
+| GET    | /venues/&lt;id&gt;| Detalhes do venue    | Livre      |
 | PUT    | /venues/&lt;id&gt;| Editar venue         | JWT        |
 | DELETE | /venues/&lt;id&gt;| Apagar venue         | JWT        |
+
+### Assistant (IA)
+
+| Método | Endpoint      | Descrição                              | Permissão  |
+|--------|---------------|----------------------------------------|------------|
+| POST   | /assistant    | Perguntas e respostas IA, recomendações| Livre/JWT  |
+
+### Recomendações
+
+| Método | Endpoint           | Descrição                           | Permissão  |
+|--------|--------------------|-------------------------------------|------------|
+| GET    | /recommendations   | Sugestão de eventos por IA/ML       | JWT        |
+
+### Feedback
+
+| Método | Endpoint     | Descrição                       | Permissão  |
+|--------|--------------|----------------------------------|------------|
+| POST   | /feedback    | Enviar feedback                  | JWT        |
+| GET    | /feedback    | Listar feedbacks                 | Admin/JWT  |
 
 ---
 
 ## 📃 Documentação Swagger
 
-Acede a `/apidocs` com o servidor a correr para usar a documentação interativa.
+Acede a `/apidocs` para documentação interativa.
 
 ---
 
 ## 🧪 Exemplos de Requests
 
 ### Login
-
 ```bash
 curl -X POST http://localhost:8000/login \
   -H "Content-Type: application/json" \
   -d '{"email":"user@gmail.com", "password":"StrongPass1"}'
 ```
 
-### Criar evento autenticado
-
+### Assistant (IA)
 ```bash
-curl -X POST http://localhost:8000/events \
+curl -X POST http://localhost:8000/assistant \
   -H "Content-Type: application/json" \
-  -H "Authorization: Bearer SEU_TOKEN_AQUI" \
-  -d '{"name":"Concerto", "date":"2025-09-01", "venue_id":1}'
+  -d '{"question":"Quais eventos recomendados para mim esta semana?"}'
 ```
 
-### Criar utilizador
-
+### Recomendações
 ```bash
-curl -X POST http://localhost:8000/users \
+curl -X GET http://localhost:8000/recommendations \
+  -H "Authorization: Bearer SEU_TOKEN_JWT"
+```
+
+### Feedback
+```bash
+curl -X POST http://localhost:8000/feedback \
+  -H "Authorization: Bearer SEU_TOKEN_JWT" \
   -H "Content-Type: application/json" \
-  -d '{"username":"joao", "email":"joao@exemplo.com", "password":"forte123", "role":"user"}'
+  -d '{"event_id":1, "rating":5, "comment":"Evento excelente!"}'
 ```
 
 ---
 
 ## 🛠️ CI/CD (GitHub Actions + AWS)
 
-- Os testes correm automaticamente a cada push/pull request.
-- Deploy automatizado para AWS (EC2, ECS, EKS, etc).
-- Workflow em `.github/workflows/ci-cd.yml`.
-- Secrets e config protegidos via GitHub Secrets/AWS Secrets Manager.
+- Testes automatizados por push/pr
+- Deploy automático para AWS (EC2/ECS/EKS)
+- Workflow: `.github/workflows/ci-cd.yml`
+- Secrets/configs protegidos via GitHub/AWS Secrets Manager
 
 ---
 
-## 🗂️ Estrutura do projeto
+## 🗂️ Estrutura do Projeto
 
 ```
 backend/
   app.py
+  assistant/
+    chroma_service.py
+    embedding_pipeline.py
+    routes.py
   models/
     __init__.py
     user.py
     event.py
+    feedback.py
+    recommendation.py
     venue.py
+    chat_log.py
+    event_participation.py
   tests/
     test_app.py
     test_auth.py
     test_events.py
-    test_routes.py
     test_users.py
     test_venues.py
+    test_feedback.py
+    test_recommendations.py
   scripts/
     backup_db.sh
+    restore_db.sh
+    populate_chroma.py
   requirements.txt
   README.md
   swagger.yaml
@@ -229,45 +321,41 @@ backend/
   Dockerfile
   .env.example
   backups/
-k8s/
-  postgres-deployment.yaml
+kubernetes/
   backend-deployment.yaml
-  adminer-deployment.yaml
+  backend-ingress.yaml
+  backend-service.yaml
+  postgres-deployment.yaml
 ```
 
 ---
 
-## 🗄️ Setup Base de Dados (SQLite e PostgreSQL)
+## 🗄️ Setup Banco de Dados (SQLite/PostgreSQL)
 
-O projeto suporta **SQLite** (para testes/desenvolvimento) e **PostgreSQL** (produção).  
-A escolha é feita via variável `DATABASE_URL` no `.env`.
-
-- **SQLite** (default para dev):  
-  ```env
-  DATABASE_URL=sqlite:///local.db
-  ```
-- **PostgreSQL** (produção ou integração):  
-  ```env
-  DATABASE_URL=postgresql://user:password@host:port/dbname
-  ```
-
-**Nota:**  
-Em Docker Compose e Kubernetes, já vem pré-configurado para PostgreSQL.
+Configuração via `.env`, exemplo:
+```env
+DATABASE_URL=sqlite:///local.db          # Dev
+DATABASE_URL=postgresql://user:pass@db:5432/eventos_db  # Prod/Docker/K8s
+```
 
 ---
 
-## 🧩 Migrações de Base de Dados
+## 🧩 Migrações de Banco de Dados
 
-Usamos Alembic/Flask-Migrate:
+```bash
+flask db migrate -m "Descrição da alteração"
+flask db upgrade
+```
 
-- **Criar nova migração:**
-  ```bash
-  flask db migrate -m "Descrição da alteração"
-  ```
-- **Aplicar migrações:**
-  ```bash
-  flask db upgrade
-  ```
+---
+
+## 🔒 Segurança
+
+- Variáveis sensíveis via secrets (GitHub/AWS)
+- Senhas com hash seguro, validação de força
+- JWT com expiração, permissões e revogação
+- CORS configurado
+- Sentry (opcional)
 
 ---
 
@@ -276,12 +364,12 @@ Usamos Alembic/Flask-Migrate:
 - [x] CI/CD automatizado (GitHub Actions + AWS)
 - [x] Backup automatizado do banco
 - [x] Restore manual/documentado
-- [ ] Restore testado regularmente
+- [x] Restore testado regularmente
 - [x] Rollback de deploy (imagem Docker anterior/backups)
-- [ ] Monitoramento e alertas (containers, logs, saúde HTTP)
+- [x] Monitoramento e alertas (Prometheus, Loki, dashboards)
 - [x] Variáveis de ambiente seguras (Secrets no GitHub/AWS)
 - [x] Compatível com Kubernetes (manifests e exemplos)
-- [ ] Documentação de restore e rollback no repositório
+- [x] Documentação de restore e rollback no repositório
 
 ---
 
@@ -291,4 +379,5 @@ Usamos Alembic/Flask-Migrate:
 
 ---
 
-Dúvidas? Sugestões? Abre uma issue ou PR!
+**Dúvidas ou sugestões?**  
+Abra uma [issue](https://github.com/henrique99sl/EventAI/issues) ou envie um PR!
