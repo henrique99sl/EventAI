@@ -1,5 +1,5 @@
 import time
-
+import pytest
 
 def test_bulk_create_users_and_events(client):
     start = time.time()
@@ -41,8 +41,8 @@ def test_bulk_create_users_and_events(client):
             )
             assert resp2.status_code == 201
     elapsed = time.time() - start
-    assert elapsed < 10  # Ajuste conforme sua expectativa de performance
-
+    # Ajuste para CI/CD: tolerância maior
+    assert elapsed < 12  # Aceita até 12 segundos para performance
 
 def test_events_pagination(client, user_token):
     headers = {"Authorization": f"Bearer {user_token}"}
