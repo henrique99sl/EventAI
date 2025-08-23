@@ -1,0 +1,22 @@
+{
+  "family": "eventai-task",
+  "networkMode": "awsvpc",
+  "containerDefinitions": [
+    {
+      "name": "eventai-backend",
+      "image": "nginx:latest",
+      "cpu": 256,
+      "memory": 512,
+      "portMappings": [
+        {
+          "containerPort": 80,
+          "hostPort": 80,
+          "protocol": "tcp"
+        }
+      ]
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "256",
+  "memory": "512"
+}
