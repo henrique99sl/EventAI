@@ -1,0 +1,21 @@
+<div class="profile" *ngIf="profile">
+    <div class="header">
+      <img *ngIf="profile.avatarUrl" class="avatar" [src]="profile.avatarUrl" [alt]="profile.name" />
+      <div class="info">
+        <h2>{{ profile.name }}</h2>
+        <div class="bio" *ngIf="profile.bio">{{ profile.bio }}</div>
+        <div class="topics" *ngIf="profile.topics?.length">
+          <span>Tópicos:</span>
+          <ul>
+            <li *ngFor="let topic of profile.topics">{{ topic }}</li>
+          </ul>
+        </div>
+        <div class="socials" *ngIf="profile.social?.length">
+          <a *ngFor="let s of profile.social" [href]="s.url" target="_blank">{{ s.type }}</a>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div *ngIf="!profile" class="empty">
+    Nenhum perfil encontrado.
+  </div>

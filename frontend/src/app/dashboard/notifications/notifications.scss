@@ -1,0 +1,56 @@
+@import '../../../assets/styles/theme.scss';
+
+.notifications {
+  padding: 2rem;
+  background: $background-color;
+  color: $text-color;
+  border-radius: 8px;
+
+  h2 {
+    margin-bottom: 1.5rem;
+    font-size: 2rem;
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+
+  li {
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.2s;
+    background: #fff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+
+    &.read {
+      opacity: 0.6;
+    }
+    &.unread {
+      font-weight: bold;
+    }
+    &.success {
+      border-left: 4px solid #4caf50;
+    }
+    &.info {
+      border-left: 4px solid #2196f3;
+    }
+    &.warning {
+      border-left: 4px solid #ff9800;
+    }
+    &.error {
+      border-left: 4px solid #f44336;
+    }
+
+    .message {
+      margin-right: 1rem;
+    }
+    .status {
+      color: #2196f3;
+      font-size: 0.9rem;
+      font-weight: bold;
+    }
+  }
+}

@@ -1,0 +1,20 @@
+<div class="metrics-container">
+    <h3>Métricas das Tarefas</h3>
+    <div class="metrics-row">
+      <div class="metric">
+        <span class="value">{{ totalTasks }}</span>
+        <span class="label">Total</span>
+      </div>
+      <div class="metric">
+        <span class="value">{{ completedTasks }}</span>
+        <span class="label">Concluídas</span>
+      </div>
+      <div class="metric">
+        <span class="value">{{ completionRate }}%</span>
+        <span class="label">Conclusão</span>
+      </div>
+    </div>
+    <div *ngIf="totalTasks === 0" class="empty">
+      Nenhuma tarefa para mostrar métricas.
+    </div>
+  </div>

@@ -1,0 +1,15 @@
+<div class="assistant-widget">
+    <h3>Assistente Virtual</h3>
+    <div class="conversation">
+      <div *ngFor="let msg of conversation" [ngClass]="msg.from">
+        <span>{{ msg.message }}</span>
+      </div>
+      <div *ngIf="loading" class="assistant loading">
+        <span>A pensar...</span>
+      </div>
+    </div>
+    <form (ngSubmit)="sendMessage()">
+      <input [(ngModel)]="userMessage" name="userMessage" placeholder="Escreve a tua pergunta..." autocomplete="off" />
+      <button type="submit" [disabled]="loading || !userMessage.trim()">Enviar</button>
+    </form>
+  </div>

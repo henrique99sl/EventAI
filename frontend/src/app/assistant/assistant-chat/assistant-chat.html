@@ -1,0 +1,21 @@
+<div class="assistant-chat">
+    <div class="messages">
+      <div *ngFor="let msg of messages" [ngClass]="{'user': msg.user === 'User', 'assistant': msg.user !== 'User'}" class="message">
+        <div class="meta">
+          <span class="user">{{ msg.user }}</span>
+          <span class="timestamp">{{ msg.timestamp | date:'shortTime' }}</span>
+        </div>
+        <div class="text">{{ msg.text }}</div>
+      </div>
+    </div>
+    <form class="chat-input" (ngSubmit)="onSend()">
+      <input
+        type="text"
+        [(ngModel)]="userInput"
+        name="chatInput"
+        placeholder="Digite sua mensagem..."
+        autocomplete="off"
+      />
+      <button type="submit" [disabled]="!userInput.trim()">Enviar</button>
+    </form>
+  </div>

@@ -1,0 +1,49 @@
+<header>
+    <nav class="navbar">
+      <a routerLink="/" class="logo" aria-label="Página inicial">
+        <img src="assets/images/logo.png" alt="EventAI logo" height="80"/>
+      </a>
+      <ul class="nav-links">
+        <li><a routerLink="/agenda">Agenda</a></li>
+        <li><a routerLink="/dashboard">Dashboard</a></li>
+        <li><a routerLink="/speaker">Oradores</a></li>
+        <li><a routerLink="/live">Ao Vivo</a></li>
+        <li><a routerLink="/feedback">Feedback</a></li>
+        <!-- Eventos dropdown -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" tabindex="0">Eventos <span class="arrow">&#9662;</span></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/eventos/editar">Editar eventos</a></li>
+            <li><a routerLink="/eventos/criar">Criar eventos</a></li>
+            <li><a routerLink="/eventos/apagar">Apagar eventos</a></li>
+          </ul>
+        </li>
+        <!-- Locais -->
+        <li>
+          <a routerLink="/locais">Locais</a>
+        </li>
+        <!-- Perfil dropdown -->
+        <li class="dropdown">
+          <a class="dropdown-toggle" tabindex="0">Perfil <span class="arrow">&#9662;</span></a>
+          <ul class="dropdown-menu">
+            <li><a routerLink="/perfil/calendario">Calendário pessoal</a></li>
+            <li><a routerLink="/perfil/definicoes">Definições</a></li>
+            <li><a routerLink="/perfil/meus-eventos">Meus eventos</a></li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+  </header>
+  
+  <main>
+    <!-- Chat do Assistente integrado, pode ser posicionado fixo -->
+    <app-assistant *ngIf="mostrarChat"></app-assistant>
+    <!-- Conteúdo da página conforme rota -->
+    <router-outlet></router-outlet>
+  </main>
+  
+  <footer>
+    <div class="footer-content">
+      &copy; {{ title }} {{ currentYear }} · Todos os direitos reservados.
+    </div>
+  </footer>

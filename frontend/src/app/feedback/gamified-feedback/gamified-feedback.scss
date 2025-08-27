@@ -1,0 +1,74 @@
+.gamified-feedback {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2em;
+    max-width: 370px;
+    margin: 0 auto;
+    padding: 2em;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  
+    h2 {
+      text-align: center;
+      color: #1976d2;
+      margin-bottom: 0.8em;
+    }
+  
+    .emoji-group {
+      display: flex;
+      justify-content: center;
+      gap: 1.2em;
+      margin-bottom: 0.7em;
+  
+      button {
+        font-size: 2.2em;
+        background: none;
+        border: 2px solid transparent;
+        border-radius: 50%;
+        cursor: pointer;
+        transition: border .2s, transform .2s;
+        padding: 0.25em 0.45em;
+  
+        &:hover, &.selected {
+          border-color: #1976d2;
+          background: #e3f2fd;
+          transform: scale(1.13);
+        }
+      }
+    }
+  
+    .comment-group {
+      textarea {
+        width: 100%;
+        font-size: 1em;
+        padding: 0.7em;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        resize: vertical;
+        outline: none;
+        transition: border .2s;
+        &:focus {
+          border-color: #1976d2;
+        }
+      }
+    }
+  
+    button[type="submit"] {
+      align-self: center;
+      min-width: 140px;
+      background: #1976d2;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 8px;
+      padding: 0.7em 1.2em;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background .2s;
+      &:disabled {
+        background: #bdbdbd;
+        cursor: not-allowed;
+      }
+    }
+  }

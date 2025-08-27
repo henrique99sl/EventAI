@@ -1,0 +1,32 @@
+@import '../../assets/styles/theme.scss';
+
+.live {
+  background: $background-color;
+  color: $text-color;
+  padding: 2rem;
+  border-radius: 14px;
+  max-width: 900px;
+  margin: 0 auto;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.08);
+
+  h2 {
+    text-align: center;
+    margin-bottom: 2rem;
+    font-family: $font-stack;
+    font-size: 2rem;
+  }
+
+  .live-widgets {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+
+    @media (max-width: 900px) {
+      grid-template-columns: 1fr;
+    }
+
+    > * {
+      margin-bottom: 1.5rem;
+    }
+  }
+}

@@ -1,0 +1,12 @@
+<div class="venue-list-container">
+    <h2>Lista de Venues</h2>
+    <div *ngIf="loading" class="loading">A carregar...</div>
+    <div *ngIf="error" class="error">{{ error }}</div>
+    <ul>
+      <li *ngFor="let venue of venues">
+        <span>{{ venue.name }} <small *ngIf="venue.location">({{ venue.location }})</small></span>
+        <button (click)="deleteVenue(venue.id)">Apagar</button>
+      </li>
+    </ul>
+    <div *ngIf="!loading && venues.length === 0">Não existem venues.</div>
+  </div>

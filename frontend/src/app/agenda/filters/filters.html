@@ -1,0 +1,26 @@
+<div class="filters">
+    <form (ngSubmit)="applyFilters()">
+      <input
+        type="date"
+        [(ngModel)]="filters.date"
+        name="date"
+        placeholder="Data"
+      />
+      <input
+        type="text"
+        [(ngModel)]="filters.location"
+        name="location"
+        placeholder="Localização"
+      />
+      <input
+        type="text"
+        [(ngModel)]="filters.search"
+        name="search"
+        placeholder="Pesquisar título/descrição"
+      />
+      <div class="actions">
+        <button type="submit">Filtrar</button>
+        <button type="button" (click)="clearFilters()">Limpar</button>
+      </div>
+    </form>
+  </div>

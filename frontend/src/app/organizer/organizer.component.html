@@ -1,0 +1,22 @@
+<div class="organizer-container">
+    <h2>Organizador de Tarefas</h2>
+    <form (ngSubmit)="addTask()" class="task-form">
+      <input
+        type="text"
+        [(ngModel)]="newTaskTitle"
+        name="newTaskTitle"
+        placeholder="Nova tarefa..."
+        autocomplete="off"
+      />
+      <button type="submit" [disabled]="!newTaskTitle.trim()">Adicionar</button>
+    </form>
+    <ul class="task-list">
+      <li *ngFor="let task of tasks" [class.done]="task.done">
+        <span (click)="toggleTask(task)" class="task-title">
+          {{ task.title }}
+        </span>
+        <button (click)="removeTask(task)" aria-label="Remover tarefa">🗑️</button>
+      </li>
+    </ul>
+    <div *ngIf="tasks.length === 0" class="empty">Nenhuma tarefa adicionada ainda.</div>
+  </div>

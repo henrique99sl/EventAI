@@ -1,0 +1,10 @@
+<div class="assistant-history">
+    <div *ngFor="let msg of messages" class="message">
+      <div class="meta">
+        <span class="user">{{ msg.user }}</span>
+        <span class="timestamp">{{ msg.timestamp | date:'short' }}</span>
+      </div>
+      <div class="text">{{ msg.text }}</div>
+    </div>
+    <div *ngIf="messages.length === 0" class="empty">Nenhum histórico encontrado.</div>
+  </div>

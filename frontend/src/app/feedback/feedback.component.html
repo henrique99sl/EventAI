@@ -1,0 +1,15 @@
+<div class="feedback">
+    <h3>Feedback</h3>
+    <form (ngSubmit)="submitFeedback()">
+      <textarea
+        [(ngModel)]="feedbackText"
+        name="feedbackText"
+        placeholder="Escreve aqui o teu feedback..."
+        rows="4"
+        [disabled]="submitting"
+      ></textarea>
+      <button type="submit" [disabled]="submitting || !feedbackText.trim()">Enviar</button>
+    </form>
+    <div class="msg success" *ngIf="successMsg">{{ successMsg }}</div>
+    <div class="msg error" *ngIf="errorMsg">{{ errorMsg }}</div>
+  </div>

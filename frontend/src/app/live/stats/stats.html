@@ -1,0 +1,13 @@
+<div class="stats">
+    <h3>Estatísticas ao Vivo</h3>
+    <div *ngIf="loading" class="loading">A carregar...</div>
+    <div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+    <div *ngIf="stats && !loading">
+      <ul>
+        <li><strong>Visualizações:</strong> {{ stats.viewers }}</li>
+        <li><strong>Mensagens no chat:</strong> {{ stats.messages }}</li>
+        <li><strong>Votos:</strong> {{ stats.votes }}</li>
+        <li><strong>Última atualização:</strong> {{ stats.updatedAt | date:'short' }}</li>
+      </ul>
+    </div>
+  </div>

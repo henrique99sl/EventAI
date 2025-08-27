@@ -1,0 +1,10 @@
+<div class="qr-login-container">
+    <h2>Login via QR Code</h2>
+    <div *ngIf="!scanned">
+      <img [src]="qrCodeUrl" alt="QR Code para login" class="qr-img" />
+      <button (click)="onScanSuccess()">Simular Scan</button>
+      <button class="error-btn" (click)="onScanError()">Simular Erro</button>
+    </div>
+    <div class="message" *ngIf="message">{{ message }}</div>
+    <div class="error" *ngIf="error">{{ error }}</div>
+  </div>

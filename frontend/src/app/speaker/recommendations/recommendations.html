@@ -1,0 +1,22 @@
+<div class="recommendations">
+    <h3>Recomendações de Palestrantes</h3>
+    <div *ngIf="recommendations.length === 0" class="empty">Nenhuma recomendação disponível.</div>
+    <div class="recommendation-list" *ngIf="recommendations.length > 0">
+      <div *ngFor="let speaker of recommendations" class="card">
+        <img *ngIf="speaker.avatarUrl" class="avatar" [src]="speaker.avatarUrl" [alt]="speaker.name" />
+        <div class="info">
+          <div class="name">{{ speaker.name }}</div>
+          <div class="bio" *ngIf="speaker.bio">{{ speaker.bio }}</div>
+          <div class="topics" *ngIf="speaker.topics?.length">
+            <span>Tópicos:</span>
+            <ul>
+              <li *ngFor="let topic of speaker.topics">{{ topic }}</li>
+            </ul>
+          </div>
+          <div class="reason" *ngIf="speaker.reason">
+            <span>Motivo da recomendação:</span> {{ speaker.reason }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

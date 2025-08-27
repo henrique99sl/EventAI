@@ -1,0 +1,9 @@
+<div class="dashboard">
+    <h1>{{ title }}</h1>
+    <div class="stats">
+      <div *ngFor="let stat of stats" class="stat">
+        <span class="name">{{ stat.name }}</span>
+        <span class="value">{{ stat.value }}</span>
+      </div>
+    </div>
+  </div>

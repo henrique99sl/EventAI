@@ -1,0 +1,44 @@
+.venue-list-container {
+    max-width: 500px;
+    margin: 0 auto;
+    padding: 1rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px #0002;
+  
+    h2 {
+      text-align: center;
+    }
+  
+    .loading {
+      color: #666;
+      font-style: italic;
+    }
+    .error {
+      color: #d00;
+      margin-bottom: 1rem;
+    }
+    ul {
+      list-style: none;
+      padding: 0;
+      li {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #eee;
+        padding: 0.5rem 0;
+  
+        button {
+          background: #d00;
+          color: #fff;
+          border: none;
+          border-radius: 4px;
+          padding: 0.25rem 0.5rem;
+          cursor: pointer;
+          &:hover {
+            background: #a00;
+          }
+        }
+      }
+    }
+  }

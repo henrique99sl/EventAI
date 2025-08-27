@@ -943,6 +943,14 @@ def create_app(test_config=None):
             ),
             201,
         )
+    
+
+    @app.route("/feedback", methods=["GET"])
+    @jwt_required
+    def get_feedback():
+        user_id = g.current_user.id
+        feedbacks = Feedback.query.filter_by(user_id=user_id).all()
+        return jsonify([f.to_dict() for f in feedbacks]), 200
 
     return app
 

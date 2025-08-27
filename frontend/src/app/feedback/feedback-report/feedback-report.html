@@ -1,0 +1,29 @@
+<div class="feedback-report">
+    <h2>Relatório de Feedbacks</h2>
+    <div *ngIf="feedbacks?.length; else noFeedback">
+      <table>
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Feedback</th>
+            <th>Avaliação</th>
+            <th>Emoji</th>
+            <th>Comentário</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let entry of feedbacks">
+            <td>{{ entry.date | date:'short' }}</td>
+            <td>{{ entry.feedback }}</td>
+            <td *ngIf="entry.rating">{{ entry.rating }}</td>
+            <td *ngIf="!entry.rating">-</td>
+            <td>{{ entry.emoji || '-' }}</td>
+            <td>{{ entry.comment || '-' }}</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <ng-template #noFeedback>
+      <div class="empty">Nenhum feedback recebido ainda.</div>
+    </ng-template>
+  </div>

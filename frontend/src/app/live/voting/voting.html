@@ -1,0 +1,21 @@
+<div class="voting">
+    <h3>Votação ao vivo</h3>
+    <div *ngIf="options.length === 0" class="empty">Sem opções de voto disponíveis.</div>
+    <form *ngIf="options.length > 0" (ngSubmit)="vote()">
+      <div class="options">
+        <label *ngFor="let opt of options" [class.selected]="selectedOptionId === opt.id">
+          <input
+            type="radio"
+            name="vote"
+            [value]="opt.id"
+            [(ngModel)]="selectedOptionId"
+            [disabled]="submitting"
+          />
+          {{ opt.label }} <span class="votes">({{ opt.votes }} votos)</span>
+        </label>
+      </div>
+      <button type="submit" [disabled]="submitting || selectedOptionId === null">Votar</button>
+    </form>
+    <div class="msg success" *ngIf="successMsg">{{ successMsg }}</div>
+    <div class="msg error" *ngIf="errorMsg">{{ errorMsg }}</div>
+  </div>

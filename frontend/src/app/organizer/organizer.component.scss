@@ -1,0 +1,95 @@
+.organizer-container {
+    max-width: 430px;
+    margin: 0 auto;
+    padding: 2em;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  
+    h2 {
+      text-align: center;
+      color: #1976d2;
+      margin-bottom: 1em;
+    }
+  
+    .task-form {
+      display: flex;
+      gap: 0.6em;
+      margin-bottom: 1.2em;
+  
+      input {
+        flex: 1;
+        padding: 0.7em;
+        border-radius: 7px;
+        border: 1px solid #ccc;
+        outline: none;
+        font-size: 1em;
+        transition: border .2s;
+        &:focus {
+          border-color: #1976d2;
+        }
+      }
+      button {
+        background: #1976d2;
+        color: #fff;
+        border: none;
+        border-radius: 7px;
+        padding: 0.7em 1.2em;
+        font-weight: bold;
+        font-size: 1em;
+        cursor: pointer;
+        transition: background .2s;
+        &:disabled {
+          background: #bdbdbd;
+          cursor: not-allowed;
+        }
+      }
+    }
+  
+    .task-list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      li {
+        display: flex;
+        align-items: center;
+        gap: 0.7em;
+        padding: 0.8em;
+        border-bottom: 1px solid #eee;
+        font-size: 1.08em;
+  
+        &.done .task-title {
+          text-decoration: line-through;
+          color: #bdbdbd;
+        }
+        .task-title {
+          flex: 1;
+          cursor: pointer;
+          transition: color .2s;
+          &:hover {
+            color: #1976d2;
+          }
+        }
+        button {
+          background: none;
+          border: none;
+          font-size: 1.2em;
+          cursor: pointer;
+          padding: 0.2em 0.4em;
+          border-radius: 5px;
+          transition: background .2s;
+          &:hover {
+            background: #f44336;
+            color: #fff;
+          }
+        }
+      }
+    }
+  
+    .empty {
+      color: #bbb;
+      font-style: italic;
+      text-align: center;
+      margin-top: 1.6em;
+    }
+  }

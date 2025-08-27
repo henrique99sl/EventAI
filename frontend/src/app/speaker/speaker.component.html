@@ -1,0 +1,16 @@
+<div class="speaker-list">
+    <h3>Palestrantes</h3>
+    <div *ngIf="speakers.length === 0" class="empty">Nenhum palestrante para mostrar.</div>
+    <div class="speakers" *ngIf="speakers.length > 0">
+      <div *ngFor="let speaker of speakers" class="speaker-card">
+        <img *ngIf="speaker.avatarUrl" class="avatar" [src]="speaker.avatarUrl" [alt]="speaker.name" />
+        <div class="info">
+          <div class="name">{{ speaker.name }}</div>
+          <div class="bio" *ngIf="speaker.bio">{{ speaker.bio }}</div>
+          <div class="socials" *ngIf="speaker.social?.length">
+            <a *ngFor="let s of speaker.social" [href]="s.url" target="_blank">{{ s.type }}</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>

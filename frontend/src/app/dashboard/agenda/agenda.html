@@ -1,0 +1,10 @@
+<div class="agenda">
+    <h2>Event Agenda</h2>
+    <ul>
+      <li *ngFor="let item of agenda" class="agenda-item">
+        <span class="agenda-time">{{ item.time }}</span>
+        <span class="agenda-title">{{ item.title }}</span>
+        <span *ngIf="item.speaker" class="agenda-speaker">— {{ item.speaker }}</span>
+      </li>
+    </ul>
+  </div>

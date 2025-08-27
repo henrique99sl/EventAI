@@ -1,0 +1,9 @@
+<div class="export-reports-container">
+    <h3>Exportar Relatório de Tarefas</h3>
+    <button (click)="exportCSV()" [disabled]="tasks.length === 0">
+      Exportar CSV
+    </button>
+    <div *ngIf="tasks.length === 0" class="empty">
+      Nenhuma tarefa disponível para exportação.
+    </div>
+  </div>

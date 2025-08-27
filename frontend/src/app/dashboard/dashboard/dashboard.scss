@@ -1,0 +1,31 @@
+@import '../../../assets/styles/theme.scss';
+
+.dashboard {
+  padding: 2rem;
+  background: $background-color;
+  color: $text-color;
+
+  h1 {
+    margin-bottom: 2rem;
+  }
+
+  .stats {
+    display: flex;
+    gap: 2rem;
+    .stat {
+      background: white;
+      color: #333;
+      border-radius: 8px;
+      padding: 1rem 2rem;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+
+      .name {
+        font-weight: bold;
+        margin-right: 1rem;
+      }
+      .value {
+        font-size: 2rem;
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+<div class="assistant-container">
+    <app-assistant-chat
+      [messages]="messages"
+      (sendMessage)="addMessage($event)">
+    </app-assistant-chat>
+    <app-assistant-history [messages]="messages"></app-assistant-history>
+  </div>

@@ -1,0 +1,9 @@
+<div class="notifications">
+    <h2>Notifications</h2>
+    <ul>
+      <li *ngFor="let n of notifications" [ngClass]="[n.type, n.read ? 'read' : 'unread']" (click)="markAsRead(n.id)">
+        <span class="message">{{ n.message }}</span>
+        <span class="status" *ngIf="!n.read">• New</span>
+      </li>
+    </ul>
+  </div>

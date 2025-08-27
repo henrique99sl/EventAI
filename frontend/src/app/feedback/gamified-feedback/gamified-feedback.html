@@ -1,0 +1,23 @@
+<form class="gamified-feedback" (ngSubmit)="sendFeedback()">
+    <h2>Como você se sentiu?</h2>
+    <div class="emoji-group">
+      <button
+        type="button"
+        *ngFor="let e of emojis"
+        [class.selected]="selectedEmoji === e.value"
+        (click)="selectedEmoji = e.value"
+        [attr.aria-label]="e.label"
+      >
+        {{ e.value }}
+      </button>
+    </div>
+    <div class="comment-group">
+      <textarea
+        [(ngModel)]="comment"
+        name="comment"
+        placeholder="Conte-nos mais (opcional)..."
+        rows="3"
+      ></textarea>
+    </div>
+    <button type="submit" [disabled]="!selectedEmoji">Enviar feedback</button>
+  </form>

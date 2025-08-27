@@ -1,0 +1,217 @@
+/* Import Angular Material Theme - obrigatório para Material funcionar! */
+@import '@angular/material/prebuilt-themes/indigo-pink.css';
+// Ou escolhe outro tema disponível:
+// @import '@angular/material/prebuilt-themes/deeppurple-amber.css';
+// @import '@angular/material/prebuilt-themes/pink-bluegrey.css';
+// @import '@angular/material/prebuilt-themes/purple-green.css';
+
+/* Importa variáveis, mixins e outros estilos globais que estão em assets (opcional) */
+@import 'assets/styles/variables';
+@import 'assets/styles/mixins';
+@import 'assets/styles/theme';
+
+/* Reset básico e fontes */
+body, html {
+  margin: 0;
+  padding: 0;
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  background: #f4f6fb;
+  color: #222;
+  min-height: 100vh;
+}
+
+a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s;
+  &:hover {
+    text-decoration: underline;
+    color: #0056b3;
+  }
+}
+
+/* Container root */
+app-root {
+  display: block;
+  min-height: 100vh;
+}
+
+/* Navbar e dropdowns profissionais */
+.navbar {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  padding: 0 32px;
+  position: sticky;
+  top: 0;
+  z-index: 999;
+  .logo img {
+    vertical-align: middle;
+    height: 60px;
+  }
+}
+
+.nav-links {
+  display: flex;
+  list-style: none;
+  margin-left: auto;
+  gap: 20px;
+  align-items: center;
+  li {
+    position: relative;
+
+    a, .dropdown-toggle {
+      display: flex;
+      align-items: center;
+      font-size: 1.08rem;
+      color: #222;
+      padding: 10px 18px;
+      border-radius: 4px;
+      transition: background 0.2s, color 0.2s;
+      cursor: pointer;
+      &:hover, &:focus {
+        background: #f2f4fa;
+        color: #007bff;
+      }
+      .arrow {
+        margin-left: 6px;
+        font-size: 0.8em;
+      }
+    }
+    &.dropdown:hover .dropdown-menu,
+    &.dropdown:focus-within .dropdown-menu {
+      display: block;
+    }
+    .dropdown-menu {
+      display: none;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background: #fff;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+      border-radius: 4px;
+      min-width: 180px;
+      z-index: 999;
+      padding: 8px 0;
+      li {
+        width: 100%;
+        a {
+          padding: 10px 20px;
+          color: #333;
+          font-size: 1rem;
+          border-radius: 0;
+          transition: background 0.2s, color 0.2s;
+          &:hover {
+            background: #f4f6fb;
+            color: #007bff;
+          }
+        }
+      }
+    }
+  }
+}
+
+/* Botões globais */
+button {
+  font-family: inherit;
+  outline: none;
+  transition: background 0.2s, color 0.2s;
+  cursor: pointer;
+  border: none;
+  border-radius: 4px;
+  background: #007bff;
+  color: #fff;
+  padding: 8px 16px;
+  &:hover {
+    background: #0056b3;
+  }
+}
+
+/* Inputs globais */
+input, select, textarea {
+  font-family: inherit;
+  font-size: 1rem;
+  border-radius: 4px;
+  outline: none;
+  border: 1px solid #ddd;
+  padding: 8px 12px;
+  transition: border 0.18s;
+  &:focus {
+    border-color: #007bff;
+  }
+}
+
+/* Scrollbar custom */
+::-webkit-scrollbar {
+  width: 8px;
+  background: #eaeaea;
+}
+::-webkit-scrollbar-thumb {
+  background: #cccccc;
+  border-radius: 4px;
+}
+
+/* Mensagens globais */
+.error {
+  color: #ff3d3d;
+  font-size: 0.99rem;
+}
+.success {
+  color: #28a745;
+  font-size: 0.99rem;
+}
+
+/* Footer bonito */
+.footer-content {
+  text-align: center;
+  padding: 24px 0 12px 0;
+  font-size: 1rem;
+  background: #fff;
+  color: #222;
+  border-top: 1px solid #e5e5e5;
+}
+
+/* Responsividade básica */
+@media (max-width: 900px) {
+  .navbar {
+    flex-direction: column;
+    padding: 0 8px;
+    .logo img {
+      height: 48px;
+    }
+  }
+  .nav-links {
+    gap: 10px;
+    a, .dropdown-toggle {
+      font-size: 1rem;
+      padding: 8px 12px;
+    }
+    .dropdown-menu {
+      min-width: 140px;
+      a {
+        font-size: 0.95rem;
+        padding: 8px 14px;
+      }
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .navbar {
+    flex-direction: column;
+    padding: 0 4px;
+  }
+  .nav-links {
+    flex-wrap: wrap;
+    gap: 4px;
+    li {
+      width: 100%;
+      .dropdown-menu {
+        min-width: 100px;
+      }
+    }
+  }
+}
+
+/* Adiciona aqui outros estilos globais ou imports conforme necessário */

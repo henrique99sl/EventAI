@@ -1,0 +1,64 @@
+.feedback-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 2em;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+  
+    h2 {
+      margin-bottom: 0.5em;
+      text-align: center;
+      color: #1976d2;
+    }
+  
+    textarea {
+      resize: vertical;
+      font-size: 1em;
+      padding: 0.7em;
+      border-radius: 7px;
+      border: 1px solid #ccc;
+      outline: none;
+      transition: border .2s;
+      &:focus {
+        border-color: #1976d2;
+      }
+    }
+  
+    .rating-group {
+      display: flex;
+      align-items: center;
+      gap: 0.6em;
+      label {
+        font-size: 1em;
+        margin-right: 0.5em;
+        color: #555;
+      }
+      input[type="radio"] {
+        accent-color: #1976d2;
+      }
+      label[for^="rating-"] {
+        margin-right: 0.7em;
+        cursor: pointer;
+      }
+    }
+  
+    button {
+      background: #1976d2;
+      color: #fff;
+      font-weight: bold;
+      border: none;
+      border-radius: 7px;
+      padding: 0.7em 1.2em;
+      font-size: 1.1em;
+      cursor: pointer;
+      transition: background .2s;
+      &:disabled {
+        background: #bdbdbd;
+        cursor: not-allowed;
+      }
+    }
+  }

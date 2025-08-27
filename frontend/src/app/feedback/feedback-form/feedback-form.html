@@ -1,0 +1,26 @@
+<form class="feedback-form" (ngSubmit)="submitFeedback()">
+    <h2>Deixe seu feedback</h2>
+    <textarea
+      [(ngModel)]="feedbackText"
+      name="feedbackText"
+      placeholder="Escreva seu feedback aqui..."
+      rows="4"
+      required
+    ></textarea>
+  
+    <div class="rating-group">
+      <label>Avaliação:</label>
+      <span *ngFor="let r of [1,2,3,4,5]">
+        <input
+          type="radio"
+          [value]="r"
+          name="rating"
+          [(ngModel)]="rating"
+          id="rating-{{r}}"
+        />
+        <label for="rating-{{r}}">{{r}}</label>
+      </span>
+    </div>
+  
+    <button type="submit" [disabled]="!feedbackText.trim()">Enviar</button>
+  </form>

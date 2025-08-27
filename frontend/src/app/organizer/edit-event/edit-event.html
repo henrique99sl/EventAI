@@ -1,0 +1,23 @@
+<form class="edit-event-form" (ngSubmit)="onSave()">
+    <h3>Editar Evento</h3>
+    <label>
+      Título:
+      <input type="text" [(ngModel)]="event.title" name="title" required [ngModelOptions]="{standalone: true}" />
+    </label>
+    <label>
+      Data:
+      <input type="date" [(ngModel)]="event.date" name="date" required [ngModelOptions]="{standalone: true}" />
+    </label>
+    <label>
+      Local:
+      <input type="text" [(ngModel)]="event.location" name="location" required [ngModelOptions]="{standalone: true}" />
+    </label>
+    <label>
+      Descrição:
+      <textarea [(ngModel)]="event.description" name="description" rows="3" [ngModelOptions]="{standalone: true}"></textarea>
+    </label>
+    <div class="actions">
+      <button type="submit">Salvar</button>
+      <button type="button" (click)="onCancel()">Cancelar</button>
+    </div>
+  </form>

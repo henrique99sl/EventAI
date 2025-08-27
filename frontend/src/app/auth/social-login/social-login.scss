@@ -1,0 +1,42 @@
+.social-login-container {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    margin-top: 20px;
+  }
+  
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    border-radius: 5px;
+    padding: 12px 18px;
+    font-size: 1.1rem;
+    cursor: pointer;
+    font-weight: 500;
+    transition: background 0.18s;
+  
+    img {
+      width: 26px;
+      height: 26px;
+    }
+  }
+  
+  .google-btn {
+    background: #fff;
+    color: #333;
+    border: 1px solid #e0e0e0;
+    &:hover {
+      background: #f5f5f5;
+    }
+  }
+  
+  .facebook-btn {
+    background: #1877f2;
+    color: #fff;
+    &:hover {
+      background: #155db2;
+    }
+  }

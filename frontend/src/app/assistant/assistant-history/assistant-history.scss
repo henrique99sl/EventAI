@@ -1,0 +1,41 @@
+.assistant-history {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1.5em;
+    background: #fafafa;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  
+    .message {
+      margin-bottom: 1.2em;
+      padding: 1em;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
+  
+      .meta {
+        font-size: 0.95em;
+        color: #888;
+        margin-bottom: 0.3em;
+  
+        .user {
+          font-weight: bold;
+          margin-right: .8em;
+        }
+        .timestamp {
+          font-style: italic;
+        }
+      }
+      .text {
+        font-size: 1.08em;
+        color: #222;
+        white-space: pre-line;
+      }
+    }
+    .empty {
+      text-align: center;
+      color: #bbb;
+      margin-top: 2em;
+      font-style: italic;
+    }
+  }

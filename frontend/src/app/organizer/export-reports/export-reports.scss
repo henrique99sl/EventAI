@@ -1,0 +1,41 @@
+.export-reports-container {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    padding: 1.2em;
+    max-width: 340px;
+    margin: 0 auto;
+    margin-bottom: 1.5em;
+  
+    h3 {
+      text-align: center;
+      color: #1976d2;
+      margin-bottom: 0.8em;
+    }
+  
+    button {
+      display: block;
+      width: 100%;
+      background: #1976d2;
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 0.7em 0;
+      font-size: 1.1em;
+      cursor: pointer;
+      font-weight: bold;
+      margin-bottom: 0.7em;
+      transition: background .2s;
+      &:disabled {
+        background: #bdbdbd;
+        cursor: not-allowed;
+      }
+    }
+  
+    .empty {
+      text-align: center;
+      color: #bbb;
+      font-style: italic;
+      margin-top: 1em;
+    }
+  }

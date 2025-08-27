@@ -1,0 +1,11 @@
+{
+    "login": "Entrar",
+    "logout": "Sair",
+    "register": "Registrar",
+    "forgotPassword": "Esqueceu a senha",
+    "dashboard": "Painel",
+    "welcome": "Bem-vindo",
+    "email": "E-mail",
+    "password": "Senha",
+    "confirmPassword": "Confirmar senha"
+  }

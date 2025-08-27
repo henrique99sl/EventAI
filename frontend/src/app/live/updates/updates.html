@@ -1,0 +1,13 @@
+<div class="updates">
+    <h3>Atualizações ao Vivo</h3>
+    <div *ngIf="loading" class="loading">A carregar...</div>
+    <div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+    <ul *ngIf="!loading && updates.length">
+      <li *ngFor="let update of updates">
+        <span class="timestamp">{{ update.timestamp | date:'shortTime' }}</span>
+        <span class="type" *ngIf="update.type">[{{ update.type }}]</span>
+        <span class="message">{{ update.message }}</span>
+      </li>
+    </ul>
+    <div *ngIf="!loading && updates.length === 0" class="empty">Nenhuma atualização encontrada.</div>
+  </div>
